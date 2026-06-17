@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Yamuna Infra — Admin Portal Documentation</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; font-size: 11.5px; line-height: 1.55; }
+  h1, h2, h3, h4 { color: #1e293b; line-height: 1.25; }
+  h1 { font-size: 22px; border-bottom: 3px solid #2B3A8C; padding-bottom: 6px; margin: 0 0 14px; }
+  h2 { font-size: 16px; color: #2B3A8C; margin: 22px 0 8px; border-left: 4px solid #2B3A8C; padding-left: 8px; }
+  h3 { font-size: 13.5px; margin: 14px 0 6px; color: #334155; }
+  h4 { font-size: 12px; margin: 10px 0 4px; color: #475569; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 18px; padding: 0; }
+  li { margin: 2px 0; }
+  code { background: #f1f5f9; padding: 1px 5px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 10.5px; color: #be123c; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-family: 'Consolas', monospace; font-size: 10px; line-height: 1.5; }
+  pre code { background: none; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10.5px; }
+  th, td { border: 1px solid #cbd5e1; padding: 5px 7px; text-align: left; vertical-align: top; }
+  th { background: #2B3A8C; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .tag { display: inline-block; background: #e0e7ff; color: #2B3A8C; border-radius: 10px; padding: 1px 9px; font-size: 9.5px; font-weight: 700; }
+  .done { background: #dcfce7; color: #15803d; }
+  .wip { background: #fef9c3; color: #a16207; }
+  .todo { background: #e2e8f0; color: #475569; }
+  .note { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
+  .warn { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 8px 10px; margin: 8px 0; }
+  .module { page-break-before: always; }
+  .cover { text-align: center; padding-top: 120px; page-break-after: always; }
+  .cover h1 { font-size: 40px; border: none; color: #2B3A8C; }
+  .cover .sub { font-size: 16px; color: #475569; margin-top: 10px; }
+  .cover .meta { margin-top: 60px; color: #64748b; font-size: 12px; }
+  .toc a { color: #2B3A8C; text-decoration: none; }
+  .small { color: #64748b; font-size: 10px; }
+  .kpi { display: inline-block; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; margin: 3px; font-size: 10.5px; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 14px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover">
+  <div style="font-size:60px;">🏘️</div>
+  <h1>Yamuna Infra</h1>
+  <div class="sub">Admin Portal — Full Build Documentation</div>
+  <div class="sub" style="font-size:13px; margin-top:24px;">React + Vite + JSX · Tailwind CSS · Cloudinary · Express backend</div>
+  <div class="meta">
+    Single source of truth · Module &rarr; Phase blueprint<br/>
+    Project folder: <code>infra-website</code> · Backend: <code>infra/server</code><br/>
+    Version 1.0 · Generated 2026-06-09
+  </div>
+</div>
+
+<!-- ============================ READ FIRST ============================ -->
+<h1>0. Read First — How To Build (client instructions)</h1>
+<p>These are the binding instructions for this portal. Everything below expands on them.</p>
+<ol>
+  <li><b>Separate web app, outside the mobile app.</b> A new folder <code>infra-website</code> sits beside the React-Native app (<code>infra/</code>). It is the admin control panel.</li>
+  <li><b>Stack: React + Vite + JavaScript (JSX), NOT TypeScript.</b> Styling with <b>Tailwind CSS</b>. Keep it clean and stylish.</li>
+  <li><b>One backend only.</b> Reuse the existing Express server at <code>infra/server</code> (same MySQL DB the app uses). Add <code>/api/admin/*</code> routes there — do <b>not</b> spin up a second backend.</li>
+  <li><b>Everything dynamic.</b> Whatever the app shows — services, food menus, doctors, cars/autos, housekeeping, wheelchair, temples, community, rewards, etc. — must be <b>created/edited/removed by the admin</b>. The app reads exactly what the admin writes.</li>
+  <li><b>Images via Cloudinary</b> with a <b>drag-&-drop uploader</b> and an <b>upload-by-link</b> (paste URL) option, reused everywhere an image is needed.</li>
+  <li><b>Full user-management portal</b> inside the admin (residents, KYC, bookings, status).</li>
+  <li><b>Module &rarr; Phase structure.</b> This PDF lists modules; each has phases (large sub-tasks). Build <b>one module at a time, end-to-end</b>, then the next.</li>
+  <li><b>Track progress in <code>contextadmin.md</code></b> — every module + the one currently in progress — so work can resume after closing.</li>
+</ol>
+<div class="note"><b>Golden rule:</b> if the app screen shows it, the admin must be able to manage it. This document maps every app surface to an admin module.</div>
+
+<!-- ============================ TOC ============================ -->
+<h1 class="module">Table of Contents</h1>
+<div class="toc">
+<table>
+<tr><th style="width:60px;">Section</th><th>Title</th><th style="width:90px;">Status</th></tr>
+<tr><td>0</td><td>Read First — How to build</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>1</td><td>Purpose, scope &amp; principles</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>2</td><td>System architecture</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>3</td><td>Tech stack &amp; conventions</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>4</td><td>App inventory &rarr; what admin manages</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>5</td><td>Data model overview</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>6</td><td>Authentication, roles &amp; security</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>7</td><td>Media handling (Cloudinary + drag-drop + link)</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>8</td><td>Reusable UI component library</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td colspan="3" style="background:#eef2ff;font-weight:700;">PART B — ADMIN MODULES (build one at a time)</td></tr>
+<tr><td>A0</td><td>Foundation &amp; Shell</td><td><span class="tag wip">Scaffolded</span></td></tr>
+<tr><td>A1</td><td>Admin Auth &amp; RBAC</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A2</td><td>Dashboard &amp; Analytics</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A3</td><td>Users &amp; Residents</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A4</td><td>Services &amp; Providers</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A5</td><td>Food Ordering</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A6</td><td>Doctors &amp; Healthcare</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A7</td><td>Mobility Aids</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A8</td><td>Wellness &amp; Spiritual</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A9</td><td>Temple Directory</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A10</td><td>Transport (Cabs/Auto/Bus)</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A11</td><td>Amenities &amp; Clubhouse</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A12</td><td>Community &amp; Visitors</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A13</td><td>Rewards &amp; Projects</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A14</td><td>Notifications &amp; Broadcast</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A15</td><td>AI Concierge (RAG knowledge base)</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A16</td><td>Payments &amp; Reports</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A17</td><td>Media Library</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A18</td><td>App Settings &amp; Content</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td>A19</td><td>Audit Logs &amp; Role Admin</td><td><span class="tag todo">Planned</span></td></tr>
+<tr><td colspan="3" style="background:#eef2ff;font-weight:700;">PART C — PROCESS &amp; DELIVERY</td></tr>
+<tr><td>9</td><td>Delivery process &amp; contextadmin.md</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>10</td><td>Deployment</td><td><span class="tag done">Defined</span></td></tr>
+<tr><td>11</td><td>Appendix — endpoints, env, glossary</td><td><span class="tag done">Defined</span></td></tr>
+</table>
+</div>
+
+<!-- ============================ PART A ============================ -->
+<h1 class="module">PART A — Foundations</h1>
+
+<h2>1. Purpose, scope &amp; principles</h2>
+<p>The Yamuna Infra resident mobile app (React Native) today ships with hard-coded / mock content for every service. This portal replaces that with a <b>fully admin-managed</b> backend so non-technical staff can run the whole platform: add a new cook, change a dosa's price and photo, add a temple, define a cab fare, broadcast a notice, approve a KYC, etc.</p>
+<h3>Core principles</h3>
+<ul>
+  <li><b>Dynamic-first:</b> every list/card/price/image in the app comes from the database, written by the admin. No app rebuild needed to change content.</li>
+  <li><b>One backend, one DB:</b> the portal and the app talk to the same Express server. Admin writes; app reads.</li>
+  <li><b>CRUD parity:</b> for each app surface there is a matching admin screen with Create / Read / Update / Delete + enable/disable + ordering.</li>
+  <li><b>Image-rich:</b> Cloudinary-backed images on every catalog entity (providers, food, doctors, temples, projects, amenities…).</li>
+  <li><b>Role-based:</b> superadmin / manager / support with scoped permissions.</li>
+  <li><b>Incremental:</b> ship module by module; never a big-bang.</li>
+</ul>
+
+<h2>2. System architecture</h2>
+<pre><code>┌─────────────────────┐        ┌──────────────────────────┐        ┌─────────────────┐
+│  Resident App (RN)  │  HTTPS │   Express API (server/)  │  SQL   │   MySQL DB      │
+│  reads catalog,     │ ─────▶ │   /api/...  (app)        │ ─────▶ │  shared tables  │
+│  places orders      │        │   /api/admin/... (NEW)   │        │                 │
+└─────────────────────┘        └──────────────────────────┘        └─────────────────┘
+        ▲                                   ▲    │
+        │ same data                         │    │ Cloudinary (images), SMTP (email),
+        │                                   │    │ Cashfree (payments), NVIDIA (AI/RAG)
+┌─────────────────────┐   HTTPS             │    ▼
+│ Admin Portal (Vite) │ ───────────────────┘   external services
+│ infra-website/      │
+└─────────────────────┘</code></pre>
+<ul>
+  <li><b>Resident app:</b> <code>infra/</code> (React Native CLI). Already built (Modules 1–36).</li>
+  <li><b>Backend:</b> <code>infra/server/</code> (Express MVC, mysql2 pool, JWT). Admin routes are added here under <code>/api/admin</code> behind an admin-auth middleware.</li>
+  <li><b>Admin portal:</b> <code>infra-website/</code> (this project). Talks to the backend only; no direct DB access.</li>
+  <li><b>External:</b> Cloudinary (media), Cashfree (payments), SMTP/Gmail (email), NVIDIA NIM (LLM/embeddings for AI module).</li>
+</ul>
+
+<h2>3. Tech stack &amp; conventions</h2>
+<table>
+<tr><th>Layer</th><th>Choice</th><th>Notes</th></tr>
+<tr><td>Build tool</td><td>Vite 5</td><td><code>npm run dev</code> on :5173, proxy <code>/api</code> → :4000</td></tr>
+<tr><td>UI</td><td>React 18 (JSX)</td><td><b>No TypeScript.</b> Function components + hooks only</td></tr>
+<tr><td>Styling</td><td>Tailwind CSS 3</td><td>Brand colors in <code>tailwind.config.js</code>; no CSS-in-JS</td></tr>
+<tr><td>Routing</td><td>react-router-dom 6</td><td>Nested routes per module; protected by auth guard</td></tr>
+<tr><td>HTTP</td><td>axios</td><td>Single instance <code>src/lib/api.js</code> + JWT interceptor</td></tr>
+<tr><td>State</td><td>Local + React Query (optional)</td><td>Keep it simple; lift only what's shared</td></tr>
+<tr><td>Images</td><td>Cloudinary</td><td>Unsigned preset; drag-drop + URL; <code>src/lib/cloudinary.js</code></td></tr>
+<tr><td>Backend</td><td>Express (existing)</td><td>Controllers/models/routes pattern already in <code>server/src</code></td></tr>
+<tr><td>Auth</td><td>JWT (admins table)</td><td>Separate from resident OTP login; role claim</td></tr>
+</table>
+<h3>Frontend folder layout (target)</h3>
+<pre><code>infra-website/
+  src/
+    lib/        api.js, cloudinary.js, auth.js, format.js
+    components/  DataTable.jsx, FormModal.jsx, ImageUploader.jsx,
+                 ConfirmDialog.jsx, Toast.jsx, Pagination.jsx, SearchBar.jsx,
+                 StatusBadge.jsx, PageHeader.jsx, Sidebar.jsx, Topbar.jsx
+    layouts/     AdminLayout.jsx, AuthLayout.jsx
+    pages/
+      auth/       Login.jsx
+      dashboard/  Dashboard.jsx
+      users/      UsersList.jsx, UserDetail.jsx
+      services/   Categories.jsx, Providers.jsx, Offerings.jsx
+      food/       Categories.jsx, Items.jsx, Orders.jsx
+      ... (one folder per module) ...
+    App.jsx, main.jsx, index.css</code></pre>
+<h3>Backend additions (in <code>server/src</code>)</h3>
+<pre><code>middleware/  requireAdmin.js (JWT + role check)
+routes/      adminRoutes.js  → mounts /api/admin/* sub-routers
+controllers/ admin*Controller.js (thin)
+models/      reuse existing models + new Admin*, generic CRUD helpers
+migrations/  0XX_admin_*.sql  (admins, audit_logs, + columns like image_url)</code></pre>
+
+<h2>4. App inventory &rarr; what the admin manages</h2>
+<p>Every row below is a thing the app shows today. The right column is the admin module that will own it.</p>
+<table>
+<tr><th>App surface</th><th>Entities (dynamic)</th><th>Admin module</th></tr>
+<tr><td>Home dashboard</td><td>Quick tiles, banners, KPIs</td><td>A2 / A18</td></tr>
+<tr><td>Home Cleaning / Housekeeping / Cook</td><td>Service categories, providers, <b>offerings</b> (price/unit/image)</td><td>A4</td></tr>
+<tr><td>Meal / Food</td><td>Food categories (icon/image), food items (image, price, veg, rating), orders</td><td>A5</td></tr>
+<tr><td>Doctor &amp; Healthcare</td><td>Specialties, doctors (photo, fee, rating), slots, appointments, medicine orders</td><td>A6</td></tr>
+<tr><td>Mobility Aid</td><td>Equipment (wheelchair, etc.), pricing, requests</td><td>A7</td></tr>
+<tr><td>Wellness &amp; Spa</td><td>Therapies/services (image, price, duration), bookings</td><td>A8</td></tr>
+<tr><td>Spiritual Concierge</td><td>Spiritual services, pujas, bookings</td><td>A8</td></tr>
+<tr><td>Temple Directory</td><td>Temples (image, aarti times, crowd, distance, maps/donation URL, VIP)</td><td>A9</td></tr>
+<tr><td>Darshan &amp; Transport</td><td>Vehicle types + fares, Vrindavan places (coords), rides</td><td>A10</td></tr>
+<tr><td>Community — Feed</td><td>Announcements (pin/category), events</td><td>A12</td></tr>
+<tr><td>Community — Visitors</td><td>Visitor passes, approvals, gate logs</td><td>A12</td></tr>
+<tr><td>Community — Amenities</td><td>Amenity categories, facilities (capacity/deposit/rate/features/image), slots, blackouts, bookings</td><td>A11</td></tr>
+<tr><td>Rewards &amp; Referrals</td><td>Reward offers (points, partner, image), redemptions, referrals</td><td>A13</td></tr>
+<tr><td>New Projects / Investment</td><td>Projects (image, price, status, description)</td><td>A13</td></tr>
+<tr><td>Vrindavan Companion (AI)</td><td>Knowledge base (PDF/DB/docs/instructions), daily content</td><td>A15 / A18</td></tr>
+<tr><td>Reminders</td><td>Reminder categories</td><td>A18</td></tr>
+<tr><td>Notifications</td><td>Broadcasts, per-type templates</td><td>A14</td></tr>
+<tr><td>Profile / KYC / Family</td><td>Resident profiles, KYC review</td><td>A3</td></tr>
+<tr><td>SOS</td><td>SOS requests, emergency contacts, dispatch logs</td><td>A3 / A12</td></tr>
+<tr><td>Payments</td><td>Transactions, refunds, ledgers</td><td>A16</td></tr>
+</table>
+
+<h2 class="module">5. Data model overview</h2>
+<p>Most catalog tables follow a common shape so a <i>generic CRUD</i> backend + a <i>generic DataTable</i> frontend can serve many modules. Add an <code>image_url</code> column (Cloudinary) and <code>is_active</code>, <code>sort_order</code> to every catalog table.</p>
+<h3>Common columns (every catalog entity)</h3>
+<table>
+<tr><th>Column</th><th>Type</th><th>Purpose</th></tr>
+<tr><td>id</td><td>BIGINT PK</td><td>Identity</td></tr>
+<tr><td>name / title</td><td>VARCHAR</td><td>Display</td></tr>
+<tr><td>description</td><td>TEXT</td><td>Details</td></tr>
+<tr><td>image_url</td><td>VARCHAR</td><td>Cloudinary secure_url</td></tr>
+<tr><td>price / amount</td><td>INT</td><td>Where applicable (₹)</td></tr>
+<tr><td>is_active</td><td>TINYINT</td><td>Show/hide in app</td></tr>
+<tr><td>sort_order</td><td>INT</td><td>Display order</td></tr>
+<tr><td>created_at / updated_at</td><td>DATETIME</td><td>Audit</td></tr>
+</table>
+<h3>Key entity groups</h3>
+<ul>
+  <li><b>Catalog:</b> service_categories, service_providers, provider_offerings, food_categories, food_items, doctors, specialties, mobility_equipment, wellness_services, spiritual_services, temples, vehicle_types, transport_places, amenity_categories, amenities, reward_offers, projects.</li>
+  <li><b>Transactional:</b> bookings (per service), food_orders, appointments, rides, amenity_bookings, visitor_passes, sos_requests, payments, redemptions, referrals, reminders.</li>
+  <li><b>People:</b> users (residents), family_members, kyc, emergency_contacts, admins, roles.</li>
+  <li><b>Content/Config:</b> announcements, events, daily_content, notifications, app_settings, reminder_categories, ai_knowledge_sources.</li>
+</ul>
+<div class="note">Several of these tables already exist for the app (Modules 1–36). The admin work mostly adds <b>write</b> endpoints + <b>image_url/is_active/sort_order</b> columns + admin UIs on top of existing read endpoints.</div>
+
+<h2>6. Authentication, roles &amp; security</h2>
+<ul>
+  <li><b>Admins are separate from residents.</b> New <code>admins</code> table (email, password_hash, role, name, is_active). Resident OTP login is untouched.</li>
+  <li><b>Login:</b> email + password &rarr; bcrypt verify &rarr; JWT (<code>{ sub, role, type:'admin' }</code>, 12h). Optional OTP/2FA later.</li>
+  <li><b>Roles:</b> <code>superadmin</code> (everything incl. admin/role mgmt), <code>manager</code> (all content + users + orders), <code>support</code> (read + limited actions: KYC review, order status, notifications).</li>
+  <li><b>Middleware:</b> <code>requireAdmin(roles?)</code> verifies the JWT, checks <code>type==='admin'</code> and role membership.</li>
+  <li><b>Frontend guard:</b> a <code>&lt;Protected/&gt;</code> wrapper redirects to <code>/login</code> when no token; hides nav items the role can't access.</li>
+  <li><b>Security:</b> rate-limit login, helmet, CORS allowlist (portal origin), validate every body with Joi (already used), never expose service keys to the browser (Cashfree/NVIDIA stay server-side; only Cloudinary unsigned preset is public).</li>
+</ul>
+
+<h2>7. Media handling — Cloudinary</h2>
+<ul>
+  <li><b>Component:</b> <code>&lt;ImageUploader value onChange /&gt;</code> used by every image field. Two ways to set an image:
+    <ol>
+      <li><b>Drag &amp; drop</b> (or click to pick) a file &rarr; uploads to Cloudinary &rarr; stores <code>secure_url</code>.</li>
+      <li><b>Paste a link</b> &rarr; validates &amp; stores the URL (optionally re-hosted via Cloudinary fetch).</li>
+    </ol>
+  </li>
+  <li><b>Unsigned preset</b> for browser uploads (<code>VITE_CLOUDINARY_CLOUD_NAME</code> + <code>VITE_CLOUDINARY_UPLOAD_PRESET</code>). For stricter control add a backend <code>/api/admin/media/sign</code> route (signed uploads).</li>
+  <li><b>Media Library (A17):</b> browse/search past uploads, organise in folders, reuse via a picker.</li>
+  <li><b>Transforms:</b> store base <code>secure_url</code>; the app/portal request sized variants via Cloudinary URL params (e.g. <code>w_400,q_auto,f_auto</code>).</li>
+</ul>
+
+<h2>8. Reusable UI component library</h2>
+<p>Build these once (Module A0) and reuse across every module — this is what makes 20 modules feasible.</p>
+<table>
+<tr><th>Component</th><th>Responsibility</th></tr>
+<tr><td><code>AdminLayout</code></td><td>Sidebar + topbar + content outlet</td></tr>
+<tr><td><code>PageHeader</code></td><td>Title, subtitle, primary action button (e.g. "+ Add")</td></tr>
+<tr><td><code>DataTable</code></td><td>Columns, rows, sort, pagination, row actions (edit/delete/toggle), empty/loading states</td></tr>
+<tr><td><code>SearchBar</code> / <code>FilterChips</code></td><td>Debounced search + status/category filters</td></tr>
+<tr><td><code>FormModal</code></td><td>Slide-over/modal form; fields config-driven; validation; submit</td></tr>
+<tr><td><code>ImageUploader</code></td><td>Drag-drop + URL paste → Cloudinary → URL</td></tr>
+<tr><td><code>ConfirmDialog</code></td><td>Destructive-action confirmation</td></tr>
+<tr><td><code>StatusBadge</code></td><td>Colored status pills (active, pending, paid…)</td></tr>
+<tr><td><code>Toast</code></td><td>Success/error notifications</td></tr>
+<tr><td><code>StatCard</code></td><td>Dashboard KPI tile</td></tr>
+</table>
+<div class="note"><b>Pattern:</b> a typical catalog module = <code>PageHeader</code> + <code>SearchBar</code> + <code>DataTable</code> + <code>FormModal</code> (with <code>ImageUploader</code>) + <code>ConfirmDialog</code>. ~150 lines per module once the library exists.</div>
+
+<!-- ============================ MODULE TEMPLATE NOTE ============================ -->
+<h1 class="module">PART B — Admin Modules</h1>
+<p>Each module below is built <b>one at a time, end-to-end</b> (backend migration &rarr; endpoints &rarr; frontend screens &rarr; test &rarr; mark done in <code>contextadmin.md</code>). Each module lists: <b>Goal</b>, <b>Manages</b>, <b>Phases</b> (sub-tasks), <b>Backend</b>, <b>Frontend</b>, <b>Acceptance</b>.</p>
+
+<!-- A0 -->
+<h2 class="module">A0 — Foundation &amp; Shell <span class="tag wip">Scaffolded</span></h2>
+<p><b>Goal:</b> the project skeleton + reusable pieces everything else depends on.</p>
+<p><b>Manages:</b> nothing yet — infrastructure.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Done when</th></tr>
+<tr><td>0.1</td><td>Vite + React + JSX + Tailwind scaffold</td><td><code>npm run dev</code> serves a styled shell ✓ (done)</td></tr>
+<tr><td>0.2</td><td>AdminLayout (sidebar + topbar) + routing</td><td>All module routes render placeholders ✓ (done)</td></tr>
+<tr><td>0.3</td><td>API client + error/toast handling</td><td><code>api.js</code> with JWT interceptor, global error toast</td></tr>
+<tr><td>0.4</td><td>Reusable components (DataTable, FormModal, etc.)</td><td>Library in <code>src/components</code> documented</td></tr>
+<tr><td>0.5</td><td>ImageUploader (drag-drop + URL → Cloudinary)</td><td>Returns a URL; used by a demo field</td></tr>
+<tr><td>0.6</td><td>Theme + responsive layout polish</td><td>Looks good on laptop + tablet widths</td></tr>
+</table>
+<h4>Acceptance</h4>
+<ul><li>Shell runs, navigation works, components reusable, image upload returns a Cloudinary URL.</li></ul>
+
+<!-- A1 -->
+<h2 class="module">A1 — Admin Auth &amp; RBAC <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> secure admin login with roles; protect everything.</p>
+<p><b>Manages:</b> admin accounts, sessions, roles.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>1.1</td><td>Backend admins + auth</td><td>migration <code>admins</code>; seed superadmin; <code>POST /api/admin/auth/login</code> (bcrypt + JWT)</td></tr>
+<tr><td>1.2</td><td>requireAdmin middleware + RBAC</td><td>verify JWT, role guard, <code>GET /api/admin/auth/me</code></td></tr>
+<tr><td>1.3</td><td>Login page</td><td>email/password form, error states, token storage</td></tr>
+<tr><td>1.4</td><td>Route guards + role-aware nav</td><td><code>&lt;Protected/&gt;</code>, hide unauthorized nav</td></tr>
+<tr><td>1.5</td><td>Profile, logout, change password</td><td>topbar menu, <code>POST /auth/change-password</code></td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>POST /api/admin/auth/login      { email, password } → { token, admin }
+GET  /api/admin/auth/me         → { id, name, role }
+POST /api/admin/auth/change-password
+migration: admins(id, name, email, password_hash, role, is_active, created_at)</code></pre>
+<h4>Acceptance</h4>
+<ul><li>Only valid admins can log in; role restricts nav + endpoints; token expiry handled.</li></ul>
+
+<!-- A2 -->
+<h2 class="module">A2 — Dashboard &amp; Analytics <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> at-a-glance health of the platform.</p>
+<p><b>Manages:</b> read-only aggregates.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>2.1</td><td>Stats endpoints</td><td>counts: residents, active services, orders today, revenue, open SOS</td></tr>
+<tr><td>2.2</td><td>KPI cards</td><td>StatCard grid bound to stats</td></tr>
+<tr><td>2.3</td><td>Charts</td><td>orders/revenue over time (lightweight chart lib or SVG)</td></tr>
+<tr><td>2.4</td><td>Recent activity</td><td>latest orders / bookings / signups feed</td></tr>
+<tr><td>2.5</td><td>Date-range filter</td><td>today / 7d / 30d toggle</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET /api/admin/stats/overview?range=7d
+GET /api/admin/stats/timeseries?metric=orders&range=30d
+GET /api/admin/activity/recent</code></pre>
+<h4>Acceptance</h4><ul><li>Dashboard loads real numbers; charts render; range filter works.</li></ul>
+
+<!-- A3 -->
+<h2 class="module">A3 — Users &amp; Residents <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage residents — the user-management portal.</p>
+<p><b>Manages:</b> users, family_members, kyc, emergency_contacts, their bookings.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>3.1</td><td>Residents list + search</td><td>DataTable: name, mobile, unit, KYC status; search/filter; pagination</td></tr>
+<tr><td>3.2</td><td>Resident detail</td><td>personal, family, preferences, emergency contacts</td></tr>
+<tr><td>3.3</td><td>KYC review workflow</td><td>view ID, approve/reject with reason → updates app status</td></tr>
+<tr><td>3.4</td><td>Bookings per user</td><td>all orders/rides/appointments for a resident</td></tr>
+<tr><td>3.5</td><td>Status actions</td><td>block/unblock, reset, notes</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET  /api/admin/users?search=&kyc=&page=
+GET  /api/admin/users/:id            (profile + family + kyc + contacts)
+POST /api/admin/users/:id/kyc/approve | /reject
+POST /api/admin/users/:id/status     { active }
+GET  /api/admin/users/:id/bookings</code></pre>
+<h4>Acceptance</h4><ul><li>Find any resident, review KYC, see their activity, change status.</li></ul>
+
+<!-- A4 -->
+<h2 class="module">A4 — Services &amp; Providers <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage Home Cleaning / Housekeeping / Cook and any future service: categories &rarr; providers &rarr; offerings.</p>
+<p><b>Manages:</b> service_categories, service_providers, provider_offerings.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>4.1</td><td>Service categories CRUD</td><td>name, icon, image, is_active, sort_order</td></tr>
+<tr><td>4.2</td><td>Providers CRUD</td><td>name, tagline, image, phone, gender, rating, experience, priceFrom, category</td></tr>
+<tr><td>4.3</td><td>Offerings CRUD (per provider)</td><td>name, description, price, unit, image, is_active</td></tr>
+<tr><td>4.4</td><td>Availability &amp; ordering</td><td>enable/disable, drag-to-reorder, featured</td></tr>
+<tr><td>4.5</td><td>Bookings view</td><td>incoming service bookings + status updates</td></tr>
+</table>
+<h4>Backend (CRUD pattern repeated per entity)</h4>
+<pre><code>GET|POST            /api/admin/services/categories
+PUT|DELETE          /api/admin/services/categories/:id
+GET|POST            /api/admin/services/providers
+PUT|DELETE          /api/admin/services/providers/:id
+GET|POST            /api/admin/services/providers/:id/offerings
+PUT|DELETE          /api/admin/services/offerings/:id
+GET                 /api/admin/services/bookings</code></pre>
+<h4>Frontend</h4><ul><li>Categories page → click → Providers page → click → Offerings page; each with DataTable + FormModal + ImageUploader.</li></ul>
+<h4>Acceptance</h4><ul><li>Admin adds "FreshNest Cleaners" with offerings + images; it appears instantly in the app's drill-down.</li></ul>
+
+<!-- A5 -->
+<h2 class="module">A5 — Food Ordering <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> run the in-app food app — categories, menu items, orders.</p>
+<p><b>Manages:</b> food_categories, food_items, food_orders.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>5.1</td><td>Food categories CRUD</td><td>name, icon, cover image, sort_order (Breakfast, Lunch Thali, Dinner, South Indian, Snacks, Sweets, Beverages…)</td></tr>
+<tr><td>5.2</td><td>Food items CRUD</td><td>name, description, <b>image</b>, price, veg/non-veg, rating, category, is_active</td></tr>
+<tr><td>5.3</td><td>Stock / availability</td><td>mark sold-out, daily availability</td></tr>
+<tr><td>5.4</td><td>Orders management</td><td>list orders, update status (preparing → out → delivered)</td></tr>
+<tr><td>5.5</td><td>Tiffin plans</td><td>manage monthly subscription plans</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST   /api/admin/food/categories      PUT|DELETE /:id
+GET|POST   /api/admin/food/items           PUT|DELETE /:id
+GET        /api/admin/food/orders          PUT /api/admin/food/orders/:id/status</code></pre>
+<h4>Acceptance</h4><ul><li>Add "Masala Dosa" with photo &amp; price under South Indian → shows in app menu; orders appear here with status control.</li></ul>
+
+<!-- A6 -->
+<h2 class="module">A6 — Doctors &amp; Healthcare <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage doctors, specialties, slots, appointments, medicine orders.</p>
+<p><b>Manages:</b> specialties, doctors, doctor_slots, appointments, medicine_orders.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>6.1</td><td>Specialties CRUD</td><td>name, icon</td></tr>
+<tr><td>6.2</td><td>Doctors CRUD</td><td>name, photo, specialty, qualifications, fee, rating, experience, is_active</td></tr>
+<tr><td>6.3</td><td>Slot templates</td><td>weekly availability / day slots per doctor</td></tr>
+<tr><td>6.4</td><td>Appointments</td><td>list, confirm/cancel, reschedule</td></tr>
+<tr><td>6.5</td><td>Medicine orders</td><td>incoming orders, fulfil/track</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/healthcare/specialties  PUT|DELETE /:id
+GET|POST /api/admin/healthcare/doctors      PUT|DELETE /:id
+PUT      /api/admin/healthcare/doctors/:id/slots
+GET      /api/admin/healthcare/appointments PUT /:id/status
+GET      /api/admin/healthcare/medicine-orders</code></pre>
+<h4>Acceptance</h4><ul><li>Add a cardiologist with photo, fee, slots → bookable in app; appointments manageable here.</li></ul>
+
+<!-- A7 -->
+<h2 class="module">A7 — Mobility Aids <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage wheelchair &amp; mobility equipment + requests.</p>
+<p><b>Manages:</b> mobility_equipment, mobility_requests.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>7.1</td><td>Equipment catalog CRUD</td><td>name, image, type, rent/price, deposit, availability</td></tr>
+<tr><td>7.2</td><td>Pricing &amp; durations</td><td>hourly/daily/weekly rates</td></tr>
+<tr><td>7.3</td><td>Requests management</td><td>list, assign, mark delivered/returned</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/mobility/equipment  PUT|DELETE /:id
+GET      /api/admin/mobility/requests   PUT /:id/status</code></pre>
+<h4>Acceptance</h4><ul><li>Add "Electric wheelchair" with photo &amp; daily rate → available in app; requests tracked here.</li></ul>
+
+<!-- A8 -->
+<h2 class="module">A8 — Wellness &amp; Spiritual <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage spa/wellness therapies and spiritual concierge services.</p>
+<p><b>Manages:</b> wellness_services, spiritual_services, their bookings.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>8.1</td><td>Wellness services CRUD</td><td>name, image, description, price, duration, category</td></tr>
+<tr><td>8.2</td><td>Spiritual services CRUD</td><td>puja/seva types, image, price, notes</td></tr>
+<tr><td>8.3</td><td>Bookings</td><td>list + status for both</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/wellness/services    PUT|DELETE /:id
+GET|POST /api/admin/spiritual/services   PUT|DELETE /:id
+GET      /api/admin/wellness/bookings</code></pre>
+<h4>Acceptance</h4><ul><li>Add an "Abhyanga massage" &amp; a "Satyanarayan Puja" with images/prices → bookable in app.</li></ul>
+
+<!-- A9 -->
+<h2 class="module">A9 — Temple Directory <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage the Vrindavan temple directory + darshan config.</p>
+<p><b>Manages:</b> temples, darshan_slots.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>9.1</td><td>Temples CRUD</td><td>name, city, image, rating, crowd status, distanceKm, aarti times, maps URL, donation URL, vipAvailable, description</td></tr>
+<tr><td>9.2</td><td>Aarti / timings editor</td><td>structured timings per temple</td></tr>
+<tr><td>9.3</td><td>Darshan config</td><td>VIP options, slots, fees</td></tr>
+<tr><td>9.4</td><td>Featured / ordering</td><td>pin popular temples</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/temples        PUT|DELETE /:id
+GET      /api/admin/darshan/bookings</code></pre>
+<h4>Acceptance</h4><ul><li>Add a temple with photo, aarti times, maps link → shows in directory; darshan bookable.</li></ul>
+
+<!-- A10 -->
+<h2 class="module">A10 — Transport (Cabs / Auto / Bus) <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> run the Ola/Uber-style module — vehicle types, fares, places, rides.</p>
+<p><b>Manages:</b> vehicle_types, transport_places, fare_rules, rides.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>10.1</td><td>Vehicle types CRUD</td><td>label, icon/image, capacity, base fare, per-km, ETA, is_active</td></tr>
+<tr><td>10.2</td><td>Places management</td><td>Vrindavan/Mathura places with coords (map picker); temple flag</td></tr>
+<tr><td>10.3</td><td>Fare rules</td><td>surge, min fare, night charge, free-km</td></tr>
+<tr><td>10.4</td><td>Rides view</td><td>incoming rides, assign/confirm, status</td></tr>
+<tr><td>10.5</td><td>(Future) Driver management</td><td>drivers, assignment, live status</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/transport/vehicles  PUT|DELETE /:id
+GET|POST /api/admin/transport/places    PUT|DELETE /:id
+PUT      /api/admin/transport/fare-rules
+GET      /api/admin/transport/rides     PUT /:id/status</code></pre>
+<h4>Acceptance</h4><ul><li>Admin edits sedan per-km fare &amp; adds a new place → app fares update; rides land here. Bookings come to us (no driver app yet).</li></ul>
+
+<!-- A11 -->
+<h2 class="module">A11 — Amenities &amp; Clubhouse <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage clubhouse facilities, slots, blackouts, bookings.</p>
+<p><b>Manages:</b> amenity_categories, amenities, amenity_slots, blackouts, amenity_bookings.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>11.1</td><td>Categories CRUD</td><td>Halls, Yoga/Fitness, Pools, Courts, Lawns…</td></tr>
+<tr><td>11.2</td><td>Facilities CRUD</td><td>name, image, capacity, deposit, hourly rate, location, features, is_active</td></tr>
+<tr><td>11.3</td><td>Slot configuration</td><td>2-hour slots, opening hours</td></tr>
+<tr><td>11.4</td><td>Blackout calendar</td><td>maintenance dates per facility</td></tr>
+<tr><td>11.5</td><td>Bookings</td><td>view + approve/cancel</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/amenities/categories  PUT|DELETE /:id
+GET|POST /api/admin/amenities             PUT|DELETE /:id
+PUT      /api/admin/amenities/:id/slots
+POST     /api/admin/amenities/:id/blackouts
+GET      /api/admin/amenities/bookings</code></pre>
+<h4>Acceptance</h4><ul><li>Add "Riverside Lawn" with deposit + features + image; set a blackout date → reflected in app.</li></ul>
+
+<!-- A12 -->
+<h2 class="module">A12 — Community &amp; Visitors <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> run the community feed + visitor management.</p>
+<p><b>Manages:</b> announcements, events, visitor_passes.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>12.1</td><td>Announcements CRUD</td><td>title, body, category, pinned, image, publish/expire</td></tr>
+<tr><td>12.2</td><td>Events CRUD</td><td>title, date, location, description, image</td></tr>
+<tr><td>12.3</td><td>Visitor passes</td><td>view, approve/deny, gate logs</td></tr>
+<tr><td>12.4</td><td>Broadcast</td><td>push an announcement as a notification (links to A14)</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/community/announcements  PUT|DELETE /:id
+GET|POST /api/admin/community/events         PUT|DELETE /:id
+GET      /api/admin/visitors                 PUT /:id/status</code></pre>
+<h4>Acceptance</h4><ul><li>Post a pinned announcement with image → top of app feed; manage visitor approvals.</li></ul>
+
+<!-- A13 -->
+<h2 class="module">A13 — Rewards &amp; Projects <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage reward offers, redemptions, referrals, and new-project listings.</p>
+<p><b>Manages:</b> reward_offers, redemptions, referrals, projects.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>13.1</td><td>Reward offers CRUD</td><td>title, partner, image, points cost, category, is_active</td></tr>
+<tr><td>13.2</td><td>Redemptions</td><td>list, mark fulfilled</td></tr>
+<tr><td>13.3</td><td>Projects/Investment CRUD</td><td>name, location, image, priceFrom, status, description</td></tr>
+<tr><td>13.4</td><td>Referrals / leads</td><td>view referral signups &amp; investment leads</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|POST /api/admin/rewards/offers   PUT|DELETE /:id
+GET      /api/admin/rewards/redemptions
+GET|POST /api/admin/projects         PUT|DELETE /:id</code></pre>
+<h4>Acceptance</h4><ul><li>Add an offer &amp; a new project with images → appear in app; redemptions/leads visible.</li></ul>
+
+<!-- A14 -->
+<h2 class="module">A14 — Notifications &amp; Broadcast <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> compose and send notifications to residents.</p>
+<p><b>Manages:</b> notifications, notification_targets, templates.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>14.1</td><td>Compose &amp; send (in-app)</td><td>title, body, type icon, deep-link target</td></tr>
+<tr><td>14.2</td><td>Targeting</td><td>all / segment (tower, KYC status) / single user</td></tr>
+<tr><td>14.3</td><td>Scheduling</td><td>send now or schedule</td></tr>
+<tr><td>14.4</td><td>History &amp; read stats</td><td>sent list, delivered/read counts</td></tr>
+<tr><td>14.5</td><td>(Future) Push via FCM</td><td>device tokens + FCM send</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>POST /api/admin/notifications        { title, body, type, target, schedule }
+GET  /api/admin/notifications        (history)
+GET  /api/notifications              (app reads its feed)</code></pre>
+<h4>Acceptance</h4><ul><li>Send "Water maintenance" to Tower 2 → appears in residents' Notifications feed.</li></ul>
+
+<!-- A15 -->
+<h2 class="module">A15 — AI Concierge (RAG knowledge base) <span class="tag todo">Planned · big</span></h2>
+<p><b>Goal:</b> the configurable brain for the Vrindavan Companion chatbot (app Module 28). Admin controls what the bot knows.</p>
+<p><b>Manages:</b> ai_knowledge_sources (PDFs, docs, DB connections, instruction snippets), embeddings, vector store.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>15.1</td><td>Knowledge sources CRUD</td><td>upload PDF/doc, add URL, add instruction text, connect a DB view</td></tr>
+<tr><td>15.2</td><td>Ingestion + chunking</td><td>extract text, chunk, store</td></tr>
+<tr><td>15.3</td><td>Embeddings + vector store</td><td>NVIDIA <code>nv-embedqa-e5-v5</code> → vector table / store</td></tr>
+<tr><td>15.4</td><td>Retrieval wiring</td><td>backend <code>/api/ai/chat</code> retrieves context → LLM (key server-side)</td></tr>
+<tr><td>15.5</td><td>Test console</td><td>admin chats against the KB; sees sources used</td></tr>
+<tr><td>15.6</td><td>Per-community KB + fallback</td><td>scoping; rule-based fallback when empty</td></tr>
+</table>
+<div class="warn"><b>Security:</b> the NVIDIA key must move server-side here (today the app calls NVIDIA directly as an interim). This module completes the secure backend RAG design noted in the app's CONTEXT.md (Module 28).</div>
+<h4>Backend</h4>
+<pre><code>POST /api/admin/ai/sources          (upload/add)   GET /api/admin/ai/sources   DELETE /:id
+POST /api/admin/ai/reindex          (rebuild embeddings)
+POST /api/ai/chat                   (app → retrieves context → NVIDIA)   [server-side key]</code></pre>
+<h4>Acceptance</h4><ul><li>Upload a society rulebook PDF → bot answers rule questions from it; admin sees which chunks were used.</li></ul>
+
+<!-- A16 -->
+<h2 class="module">A16 — Payments &amp; Reports <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> oversee all money — Cashfree transactions, refunds, reports.</p>
+<p><b>Manages:</b> payments, refunds, ledgers (read + limited actions).</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>16.1</td><td>Transactions list</td><td>filters: status, method, date, resident</td></tr>
+<tr><td>16.2</td><td>Refunds</td><td>initiate refund via Cashfree (server-side)</td></tr>
+<tr><td>16.3</td><td>Reconciliation</td><td>match webhooks vs orders</td></tr>
+<tr><td>16.4</td><td>Reports / export</td><td>CSV export, revenue by service</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET  /api/admin/payments?status=&from=&to=
+POST /api/admin/payments/:id/refund
+GET  /api/admin/payments/export.csv</code></pre>
+<h4>Acceptance</h4><ul><li>See every transaction, filter, refund, export a monthly report.</li></ul>
+
+<!-- A17 -->
+<h2 class="module">A17 — Media Library <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> central place for all Cloudinary images; reuse picker.</p>
+<p><b>Manages:</b> media assets (Cloudinary), folders.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>17.1</td><td>Uploader (drag-drop + URL)</td><td>finalise the reusable ImageUploader</td></tr>
+<tr><td>17.2</td><td>Library grid</td><td>browse/search uploaded assets</td></tr>
+<tr><td>17.3</td><td>Folders / tags</td><td>organise by module</td></tr>
+<tr><td>17.4</td><td>Picker integration</td><td>"choose from library" in every image field</td></tr>
+</table>
+<h4>Acceptance</h4><ul><li>Upload once, reuse anywhere; pick existing images in any form.</li></ul>
+
+<!-- A18 -->
+<h2 class="module">A18 — App Settings &amp; Content <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> manage global app content + config.</p>
+<p><b>Manages:</b> daily_content, app_settings, reminder_categories, content pages.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>18.1</td><td>Daily content</td><td>quotes, bhajans, temple suggestion rotation</td></tr>
+<tr><td>18.2</td><td>Feature flags</td><td>toggle modules/sections on/off in app</td></tr>
+<tr><td>18.3</td><td>Reminder categories</td><td>manage the reminder category list</td></tr>
+<tr><td>18.4</td><td>Content pages</td><td>Terms, Privacy, About (served to app)</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET|PUT /api/admin/settings
+GET|POST /api/admin/daily-content  PUT|DELETE /:id</code></pre>
+<h4>Acceptance</h4><ul><li>Change today's quote / toggle a feature / edit Terms → reflected in app.</li></ul>
+
+<!-- A19 -->
+<h2 class="module">A19 — Audit Logs &amp; Role Admin <span class="tag todo">Planned</span></h2>
+<p><b>Goal:</b> accountability + manage admin team.</p>
+<p><b>Manages:</b> audit_logs, admins, roles.</p>
+<h4>Phases</h4>
+<table>
+<tr><th>#</th><th>Phase</th><th>Sub-tasks</th></tr>
+<tr><td>19.1</td><td>Audit logging middleware</td><td>record who/what/when on every write</td></tr>
+<tr><td>19.2</td><td>Log viewer</td><td>filter by admin/entity/date</td></tr>
+<tr><td>19.3</td><td>Admin &amp; role management</td><td>invite admins, set roles, deactivate</td></tr>
+</table>
+<h4>Backend</h4>
+<pre><code>GET  /api/admin/audit?admin=&entity=&from=
+GET|POST /api/admin/admins   PUT /:id   (superadmin only)</code></pre>
+<h4>Acceptance</h4><ul><li>Every change is traceable; superadmin manages the team.</li></ul>
+
+<!-- ============================ PART C ============================ -->
+<h1 class="module">PART C — Process &amp; Delivery</h1>
+
+<h2>9. Delivery process &amp; contextadmin.md</h2>
+<p>We build <b>one module at a time, end-to-end</b>, exactly like the app was built. For each module:</p>
+<ol>
+  <li>Backend migration (new tables / columns like <code>image_url</code>).</li>
+  <li>Backend model + controller + routes under <code>/api/admin</code> (+ Joi validation).</li>
+  <li>Quick backend smoke test (curl / REST client).</li>
+  <li>Frontend pages + wire to API using the reusable components.</li>
+  <li>Manual test against the running app (admin writes → app shows).</li>
+  <li>Mark the module/phase done in <code>contextadmin.md</code>.</li>
+</ol>
+<div class="note"><b><code>contextadmin.md</code></b> lives in <code>infra-website/</code> and mirrors the app's <code>CONTEXT.md</code>: a module-status table + a "current focus" section + per-module notes. Always update it at the end of a work session so the next session resumes cleanly.</div>
+<h3>Suggested build order</h3>
+<p>A0 (done) → A1 (auth) → A0.3–0.5 (components + uploader) → A3 (users) → A4 (services) → A5 (food) → A9 (temples) → A10 (transport) → A11 (amenities) → A6 (healthcare) → A8 (wellness/spiritual) → A7 (mobility) → A12 (community) → A13 (rewards/projects) → A14 (notifications) → A2 (dashboard) → A16 (payments) → A17 (media) → A18 (settings) → A15 (AI/RAG) → A19 (audit).</p>
+
+<h2>10. Deployment</h2>
+<ul>
+  <li><b>Backend:</b> already on the shared host; add admin routes + run new migrations. Set Cloudinary + admin secrets in <code>server/.env</code>.</li>
+  <li><b>Admin portal:</b> <code>npm run build</code> → static <code>dist/</code>. Host on Netlify/Vercel/any static host, or serve via the Express server (<code>express.static</code>). Lock CORS to the portal origin.</li>
+  <li><b>Env:</b> <code>VITE_API_BASE_URL</code> (prod API), <code>VITE_CLOUDINARY_*</code>. Never put server secrets in the Vite build.</li>
+  <li><b>Auth:</b> HTTPS only; short-lived admin JWT; optional IP allowlist for the admin origin.</li>
+</ul>
+
+<h2 class="module">11. Appendix</h2>
+<h3>11.1 Endpoint namespace summary</h3>
+<pre><code>/api/admin/auth/*            login, me, change-password
+/api/admin/stats/*           dashboard aggregates
+/api/admin/users/*           residents, kyc, status, bookings
+/api/admin/services/*        categories, providers, offerings, bookings
+/api/admin/food/*            categories, items, orders
+/api/admin/healthcare/*      specialties, doctors, slots, appointments
+/api/admin/mobility/*        equipment, requests
+/api/admin/wellness/*        services, bookings
+/api/admin/spiritual/*       services
+/api/admin/temples/*         temples; /api/admin/darshan/*
+/api/admin/transport/*       vehicles, places, fare-rules, rides
+/api/admin/amenities/*       categories, amenities, slots, blackouts, bookings
+/api/admin/community/*       announcements, events; /api/admin/visitors
+/api/admin/rewards/*         offers, redemptions; /api/admin/projects
+/api/admin/notifications     compose/send/history
+/api/admin/ai/*              sources, reindex
+/api/admin/payments/*        list, refund, export
+/api/admin/settings, /daily-content
+/api/admin/audit, /api/admin/admins</code></pre>
+<h3>11.2 Environment variables</h3>
+<table>
+<tr><th>Where</th><th>Var</th><th>Purpose</th></tr>
+<tr><td>portal</td><td>VITE_API_BASE_URL</td><td>backend API base (blank in dev → proxy)</td></tr>
+<tr><td>portal</td><td>VITE_CLOUDINARY_CLOUD_NAME</td><td>Cloudinary cloud</td></tr>
+<tr><td>portal</td><td>VITE_CLOUDINARY_UPLOAD_PRESET</td><td>unsigned preset</td></tr>
+<tr><td>server</td><td>CLOUDINARY_API_KEY / SECRET</td><td>signed uploads / admin media (optional)</td></tr>
+<tr><td>server</td><td>ADMIN_JWT_SECRET</td><td>admin token signing (or reuse JWT_SECRET)</td></tr>
+<tr><td>server</td><td>LLM_* / EMBEDDINGS_*</td><td>AI module (already present)</td></tr>
+<tr><td>server</td><td>SMTP_* / CASHFREE_*</td><td>email / payments (already present)</td></tr>
+</table>
+<h3>11.3 Glossary</h3>
+<ul>
+  <li><b>Catalog entity</b> — admin-managed list item shown in the app (provider, food item, doctor, temple…).</li>
+  <li><b>Offering</b> — a bookable service/package under a provider.</li>
+  <li><b>RAG</b> — Retrieval-Augmented Generation; the AI answers using admin-uploaded knowledge.</li>
+  <li><b>RBAC</b> — Role-Based Access Control.</li>
+</ul>
+
+<hr/>
+<p class="small">Yamuna Infra — Admin Portal Documentation v1.0 · Build module-by-module · Track in contextadmin.md · Backend = infra/server · Frontend = infra-website (Vite + React JSX + Tailwind).</p>
+
+</body>
+</html>
