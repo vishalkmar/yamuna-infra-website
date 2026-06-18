@@ -11,6 +11,9 @@ import ConstructionList from './pages/construction/ConstructionList';
 import ConstructionManage from './pages/construction/ConstructionManage';
 import PaymentPlanList from './pages/payments/PaymentPlanList';
 import PaymentPlanManage from './pages/payments/PaymentPlanManage';
+import SosEmergency from './pages/sos/SosEmergency';
+import BookingDockets from './pages/documents/BookingDockets';
+import SiteOverview from './pages/site/SiteOverview';
 import ServiceCategories from './pages/services/Categories';
 import ServiceProviders from './pages/services/Providers';
 import ServiceOfferings from './pages/services/Offerings';
@@ -60,7 +63,7 @@ import Admins from './pages/audit/Admins';
 import Ai from './pages/ai/Ai';
 
 // Modules with real pages now (excluded from the ComingSoon fallback).
-const BUILT = ['/users', '/construction', '/payment-plan', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
+const BUILT = ['/users', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
 
 function ComingSoon() {
   return (
@@ -95,6 +98,15 @@ export default function App() {
             {/* Construction System Management */}
             <Route path="/construction" element={<ConstructionList />} />
             <Route path="/construction/:propertyId" element={<ConstructionManage />} />
+
+            {/* SOS & Emergency */}
+            <Route path="/sos" element={<SosEmergency />} />
+
+            {/* Booking Dockets */}
+            <Route path="/dockets" element={<BookingDockets />} />
+
+            {/* Site Overview */}
+            <Route path="/site" element={<SiteOverview />} />
 
             {/* Payments & Plan (per-property) */}
             <Route path="/payment-plan" element={<PaymentPlanList />} />

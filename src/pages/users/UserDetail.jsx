@@ -142,7 +142,7 @@ export default function UserDetail() {
           <h2 className="text-xl font-bold text-slate-800">{user.name || 'Unnamed resident'}</h2>
           <div className="text-slate-500 text-sm flex items-center gap-2">
             {user.mobile}
-            <StatusBadge status={user.kycStatus} />
+            {/* KYC removed for now */}
             <StatusBadge status={user.isActive ? 'active' : 'inactive'}>{user.isActive ? 'Active' : 'Blocked'}</StatusBadge>
           </div>
         </div>
@@ -161,25 +161,7 @@ export default function UserDetail() {
           <Row label="Added" value={fmtDate(user.createdAt)} />
         </Card>
 
-        <Card title="KYC review">
-          <Row label="Status" value={<StatusBadge status={user.kycStatus} />} />
-          <Row label="ID type" value={user.kycIdType} />
-          <Row label="ID number" value={user.kycIdNumber} />
-          <Row label="Reviewed" value={user.kycReviewedAt ? fmtDateTime(user.kycReviewedAt) : '—'} />
-          {user.kycRejectReason && <Row label="Reject reason" value={user.kycRejectReason} />}
-          <div className="flex gap-2 mt-3">
-            <button
-              onClick={() => setConfirm({ kind: 'approve' })}
-              disabled={user.kycStatus === 'approved'}
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40"
-            >Approve</button>
-            <button
-              onClick={() => setRejectOpen(true)}
-              disabled={user.kycStatus === 'rejected'}
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-40"
-            >Reject</button>
-          </div>
-        </Card>
+        {/* KYC review removed for now — kept out of the portal per product decision. */}
 
         <Card title="Emergency contacts">
           {user.emergencyContacts.length === 0 ? (

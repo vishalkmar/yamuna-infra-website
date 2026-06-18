@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import api, { apiError } from '../lib/api';
 import FormModal, { Field, inputClass } from '../components/FormModal';
+import SosAlertWatcher from '../components/SosAlertWatcher';
 
 // Sidebar nav — mirrors ADMIN_PORTAL_DOCUMENTATION.pdf. `roles` (optional)
 // restricts visibility; absent = visible to all admin roles.
@@ -12,6 +13,9 @@ export const MODULES = [
   { path: '/users', label: 'Users & Residents', icon: '👥' },
   { path: '/construction', label: 'Construction System', icon: '🏗️' },
   { path: '/payment-plan', label: 'Payments & Plan', icon: '💳' },
+  { path: '/sos', label: 'SOS & Emergency', icon: '🆘' },
+  { path: '/dockets', label: 'Booking Dockets', icon: '📘' },
+  { path: '/site', label: 'Site Overview', icon: '🗺️' },
   { path: '/services', label: 'Services & Providers', icon: '🛎️' },
   { path: '/food', label: 'Food Ordering', icon: '🍽️' },
   { path: '/healthcare', label: 'Doctors & Healthcare', icon: '🩺' },
@@ -150,6 +154,8 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+      {/* Reception SOS watcher — shows a blinking danger popup on any page. */}
+      <SosAlertWatcher />
     </div>
   );
 }

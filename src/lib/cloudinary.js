@@ -66,3 +66,20 @@ export async function uploadImage(file) {
 export async function importImageByUrl(url) {
   return url;
 }
+
+// Upload any file (PDF, etc.) via Cloudinary's /auto/ endpoint — same signed
+// params (resource_type is in the URL, not the signature). Returns { url, ... }.
+export async function uploadFile(file) {
+  const { data } = await api.get('/admin/media/sign');
+  const s = data.data;
+  const form = new FormData();
+  form.append('file', file);
+  form.append('api_key', s.apiKey);
+  form.append('timestamp', s.timestamp);
+  form.append('signature', s.signature);
+  if (s.folder) form.append('folder', s.folder);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/auto/upload`, { method: 'POST', body: form });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body?.error?.message || 'Upload failed');
+  return mapResult(body);
+}
