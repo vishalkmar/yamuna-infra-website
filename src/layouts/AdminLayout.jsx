@@ -10,6 +10,8 @@ import FormModal, { Field, inputClass } from '../components/FormModal';
 export const MODULES = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/users', label: 'Users & Residents', icon: '👥' },
+  { path: '/construction', label: 'Construction System', icon: '🏗️' },
+  { path: '/payment-plan', label: 'Payments & Plan', icon: '💳' },
   { path: '/services', label: 'Services & Providers', icon: '🛎️' },
   { path: '/food', label: 'Food Ordering', icon: '🍽️' },
   { path: '/healthcare', label: 'Doctors & Healthcare', icon: '🩺' },
@@ -22,7 +24,6 @@ export const MODULES = [
   { path: '/rewards', label: 'Rewards & Projects', icon: '🎁' },
   { path: '/notifications', label: 'Notifications', icon: '🔔' },
   { path: '/ai', label: 'AI Concierge (RAG)', icon: '🤖' },
-  { path: '/payments', label: 'Payments & Reports', icon: '💳' },
   { path: '/media', label: 'Media Library', icon: '🖼️' },
   { path: '/settings', label: 'App Settings', icon: '⚙️' },
   { path: '/audit', label: 'Audit & Admins', icon: '🛡️', roles: ['superadmin'] },

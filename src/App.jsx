@@ -7,6 +7,10 @@ import AdminLayout, { MODULES } from './layouts/AdminLayout';
 import Login from './pages/auth/Login';
 import UsersList from './pages/users/UsersList';
 import UserDetail from './pages/users/UserDetail';
+import ConstructionList from './pages/construction/ConstructionList';
+import ConstructionManage from './pages/construction/ConstructionManage';
+import PaymentPlanList from './pages/payments/PaymentPlanList';
+import PaymentPlanManage from './pages/payments/PaymentPlanManage';
 import ServiceCategories from './pages/services/Categories';
 import ServiceProviders from './pages/services/Providers';
 import ServiceOfferings from './pages/services/Offerings';
@@ -47,7 +51,6 @@ import Projects from './pages/rewards/Projects';
 import Referrals from './pages/rewards/Referrals';
 import Notifications from './pages/notifications/Notifications';
 import Dashboard from './pages/dashboard/Dashboard';
-import Payments from './pages/payments/Payments';
 import Media from './pages/media/Media';
 import Settings from './pages/settings/Settings';
 import DailyContent from './pages/settings/DailyContent';
@@ -57,7 +60,7 @@ import Admins from './pages/audit/Admins';
 import Ai from './pages/ai/Ai';
 
 // Modules with real pages now (excluded from the ComingSoon fallback).
-const BUILT = ['/users', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/payments', '/media', '/settings', '/audit', '/ai'];
+const BUILT = ['/users', '/construction', '/payment-plan', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
 
 function ComingSoon() {
   return (
@@ -88,6 +91,14 @@ export default function App() {
             {/* A3 — Users & Residents */}
             <Route path="/users" element={<UsersList />} />
             <Route path="/users/:id" element={<UserDetail />} />
+
+            {/* Construction System Management */}
+            <Route path="/construction" element={<ConstructionList />} />
+            <Route path="/construction/:propertyId" element={<ConstructionManage />} />
+
+            {/* Payments & Plan (per-property) */}
+            <Route path="/payment-plan" element={<PaymentPlanList />} />
+            <Route path="/payment-plan/:propertyId" element={<PaymentPlanManage />} />
 
             {/* A4 — Services & Providers */}
             <Route path="/services" element={<ServiceCategories />} />
@@ -149,9 +160,6 @@ export default function App() {
 
             {/* A14 — Notifications & Broadcast */}
             <Route path="/notifications" element={<Notifications />} />
-
-            {/* A16 — Payments & Reports */}
-            <Route path="/payments" element={<Payments />} />
 
             {/* A17 — Media Library */}
             <Route path="/media" element={<Media />} />

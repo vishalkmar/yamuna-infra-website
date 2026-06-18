@@ -5,6 +5,8 @@ import { useToast } from '../../components/Toast';
 import StatusBadge from '../../components/StatusBadge';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import FormModal, { Field, inputClass } from '../../components/FormModal';
+import ResidentFormModal from './ResidentFormModal';
+import PropertyFormModal from './PropertyFormModal';
 import { fmtDate, fmtDateTime } from '../../lib/format';
 
 function Card({ title, children, action }) {
@@ -40,6 +42,10 @@ export default function UserDetail() {
   const [confirm, setConfirm] = useState(null); // { kind: 'block'|'unblock'|'approve' }
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [propModal, setPropModal] = useState(null); // null | { property?: {...} }
+  const [delUser, setDelUser] = useState(false);
+  const [delProp, setDelProp] = useState(null); // property to delete
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,6 +104,25 @@ export default function UserDetail() {
     } catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
   }
 
+  async function deleteResident() {
+    setBusy(true);
+    try {
+      await api.delete(`/admin/users/${id}`);
+      toast.success('Resident deleted');
+      navigate('/users');
+    } catch (e) { toast.error(apiError(e)); setBusy(false); }
+  }
+
+  async function deleteProperty() {
+    setBusy(true);
+    try {
+      await api.delete(`/admin/users/${id}/properties/${delProp.id}`);
+      toast.success('Property removed');
+      setDelProp(null);
+      load();
+    } catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
+  }
+
   if (loading) return <div className="text-slate-400">Loading…</div>;
   if (!user) return <div className="text-slate-400">Resident not found.</div>;
 
@@ -106,10 +131,14 @@ export default function UserDetail() {
       <button onClick={() => navigate('/users')} className="text-sm text-slate-500 hover:text-slate-700 mb-3">← Back to residents</button>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-full bg-brand-primary text-white grid place-items-center text-lg font-bold">
-          {(user.name || user.mobile || '?').charAt(0).toUpperCase()}
-        </div>
-        <div>
+        {user.profilePhoto ? (
+          <img src={user.profilePhoto} alt="" className="w-12 h-12 rounded-full object-cover border border-slate-200" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-brand-primary text-white grid place-items-center text-lg font-bold">
+            {(user.name || user.mobile || '?').charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="flex-1">
           <h2 className="text-xl font-bold text-slate-800">{user.name || 'Unnamed resident'}</h2>
           <div className="text-slate-500 text-sm flex items-center gap-2">
             {user.mobile}
@@ -117,15 +146,19 @@ export default function UserDetail() {
             <StatusBadge status={user.isActive ? 'active' : 'inactive'}>{user.isActive ? 'Active' : 'Blocked'}</StatusBadge>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setEditOpen(true)} className="px-3 py-1.5 rounded-lg text-sm font-semibold border border-slate-300 hover:bg-slate-50">Edit</button>
+          <button onClick={() => setDelUser(true)} className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700">Delete</button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
         <Card title="Profile">
-          <Row label="Mobile" value={user.mobile} />
+          <Row label="Phone" value={user.mobile} />
           <Row label="Email" value={user.email} />
-          <Row label="Unit" value={user.unit ? `${user.unit}${user.tower ? ` · ${user.tower}` : ''}` : '—'} />
+          <Row label="Address" value={[user.addressLine, user.city, user.state, user.pincode].filter(Boolean).join(', ') || '—'} />
           <Row label="Primary booking" value={user.primaryBookingId} />
-          <Row label="Joined" value={fmtDate(user.createdAt)} />
+          <Row label="Added" value={fmtDate(user.createdAt)} />
         </Card>
 
         <Card title="KYC review">
@@ -187,6 +220,45 @@ export default function UserDetail() {
       </div>
 
       <div className="mt-4">
+        <Card
+          title={`Properties (${user.properties?.length || 0})`}
+          action={<button onClick={() => setPropModal({})} className="px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-brand-primary hover:opacity-90">+ Add property</button>}
+        >
+          {(!user.properties || user.properties.length === 0) ? (
+            <p className="text-sm text-slate-400">No properties added yet.</p>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {user.properties.map(p => (
+                <div key={p.id} className="rounded-lg border border-slate-200 p-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-semibold text-slate-800">
+                        {p.label || p.propertyType || 'Property'}
+                        {p.flatNo ? <span className="text-slate-500 font-normal"> · {p.flatNo}</span> : ''}
+                      </div>
+                      <div className="text-xs text-slate-500 mt-0.5">{p.projectName || '—'}</div>
+                    </div>
+                    <div className="flex gap-2 text-xs">
+                      <button onClick={() => setPropModal({ property: p })} className="text-brand-primary font-semibold hover:underline">Edit</button>
+                      <button onClick={() => setDelProp(p)} className="text-rose-600 font-semibold hover:underline">Delete</button>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-sm text-slate-600 space-y-0.5">
+                    {(p.tower || p.floor) && <div>{[p.tower && `Tower ${p.tower}`, p.floor && `Floor ${p.floor}`].filter(Boolean).join(' · ')}</div>}
+                    {p.areaSqft && <div>{p.areaSqft} sq.ft{p.propertyType ? ` · ${p.propertyType}` : ''}</div>}
+                    {(p.addressLine || p.city || p.state || p.pincode) && (
+                      <div className="text-slate-500">{[p.addressLine, p.city, p.state, p.pincode].filter(Boolean).join(', ')}</div>
+                    )}
+                    {p.notes && <div className="text-slate-400 italic">{p.notes}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <div className="mt-4">
         <Card title={`Activity & bookings (${activity.length})`}>
           {activity.length === 0 ? (
             <p className="text-sm text-slate-400">No bookings or orders yet.</p>
@@ -228,6 +300,44 @@ export default function UserDetail() {
           <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} className={inputClass} placeholder="e.g. ID photo unclear" />
         </Field>
       </FormModal>
+
+      <ResidentFormModal
+        open={editOpen}
+        mode="edit"
+        initial={user}
+        onClose={() => setEditOpen(false)}
+        onSaved={load}
+      />
+
+      <PropertyFormModal
+        open={!!propModal}
+        userId={id}
+        property={propModal?.property}
+        onClose={() => setPropModal(null)}
+        onSaved={load}
+      />
+
+      <ConfirmDialog
+        open={delUser}
+        title="Delete resident?"
+        message={`This permanently removes ${user.name || 'this resident'} and all their properties. This cannot be undone.`}
+        confirmLabel="Delete"
+        danger
+        busy={busy}
+        onCancel={() => setDelUser(false)}
+        onConfirm={deleteResident}
+      />
+
+      <ConfirmDialog
+        open={!!delProp}
+        title="Delete property?"
+        message="This removes the property from the resident's account."
+        confirmLabel="Delete"
+        danger
+        busy={busy}
+        onCancel={() => setDelProp(null)}
+        onConfirm={deleteProperty}
+      />
     </div>
   );
 }
