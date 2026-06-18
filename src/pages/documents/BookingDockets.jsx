@@ -79,10 +79,17 @@ function DocketManager({ resident, onClose, onChanged }) {
     setUploading(true);
     try {
       const asset = await uploadFile(file);
-      setPendingUrl(asset.url);
-      if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''));
-      toast.success('File uploaded — add a title and save');
-    } catch (e) { toast.error(apiError(e, 'Upload failed')); } finally { setUploading(false); }
+      const docTitle = (title && title.trim()) || file.name.replace(/\.[^.]+$/, '');
+      // Upload + add in one step so the docket appears immediately.
+      const { data } = await api.post('/admin/documents', {
+        userId: resident.id, title: docTitle, url: asset.url, kind: 'booking_docket',
+      });
+      setDocs(data.data); setTitle(''); setPendingUrl('');
+      toast.success('Docket uploaded ✓');
+      onChanged && onChanged();
+    } catch (e) {
+      toast.error(apiError(e, 'Upload failed — check the file or paste a URL'));
+    } finally { setUploading(false); }
   }
 
   async function save() {
