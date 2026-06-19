@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import api, { apiError } from '../../lib/api';
-import { uploadDocument } from '../../lib/uploads';
+import { uploadDocketPdf } from '../../lib/uploads';
 import { useToast } from '../../components/Toast';
 import PageHeader from '../../components/PageHeader';
 import SearchBar from '../../components/SearchBar';
 import DataTable from '../../components/DataTable';
-import FormModal, { Field, inputClass } from '../../components/FormModal';
+import FormModal from '../../components/FormModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { fmtDate } from '../../lib/format';
 
@@ -56,10 +56,7 @@ function DocketManager({ resident, onClose, onChanged }) {
   const fileRef = useRef(null);
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [pendingUrl, setPendingUrl] = useState('');
-  const [saving, setSaving] = useState(false);
   const [del, setDel] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -72,34 +69,23 @@ function DocketManager({ resident, onClose, onChanged }) {
     } catch (e) { toast.error(apiError(e)); } finally { setLoading(false); }
   }, [resident, toast]);
 
-  useEffect(() => { if (resident) { setTitle(''); setPendingUrl(''); load(); } }, [resident, load]);
+  useEffect(() => { if (resident) load(); }, [resident, load]);
 
+  // One step: pick a PDF → it uploads AND saves the docket. No title, no URL.
   async function pickFile(file) {
     if (!file) return;
     setUploading(true);
     try {
-      // Only upload to Cloudinary here and stage the URL for preview. The docket
-      // is created when the user clicks "Add docket" (save), so the submit button
-      // never fires before a file is ready.
-      const asset = await uploadDocument(file);
-      setPendingUrl(asset.url);
-      if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ''));
-      toast.success('PDF uploaded ✓ — now click “Add docket” to save');
-    } catch (e) {
-      toast.error(apiError(e, 'Upload failed — check the file or paste a URL'));
-    } finally { setUploading(false); }
-  }
-
-  async function save() {
-    if (!pendingUrl) { toast.error('Upload a PDF first (or paste a URL)'); return; }
-    if (!title.trim()) { toast.error('Enter a title'); return; }
-    setSaving(true);
-    try {
-      const { data } = await api.post('/admin/documents', { userId: resident.id, title: title.trim(), url: pendingUrl, kind: 'booking_docket' });
-      setDocs(data.data); setTitle(''); setPendingUrl('');
-      toast.success('Docket added');
+      const list = await uploadDocketPdf(file, { userId: resident.id, kind: 'booking_docket' });
+      setDocs(list);
+      toast.success('Docket uploaded ✓');
       onChanged && onChanged();
-    } catch (e) { toast.error(apiError(e)); } finally { setSaving(false); }
+    } catch (e) {
+      toast.error(apiError(e, 'Upload failed — please try another PDF'));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = ''; // allow re-picking the same file
+    }
   }
 
   async function doDelete() {
@@ -118,24 +104,17 @@ function DocketManager({ resident, onClose, onChanged }) {
         wide
         title={resident ? `Booking dockets · ${resident.name || resident.mobile}` : ''}
         onClose={onClose}
-        onSubmit={save}
-        submitting={saving}
-        submitLabel="Add docket"
+        onSubmit={onClose}
+        submitLabel="Done"
       >
-        <div className="rounded-lg border border-slate-200 p-3">
-          <span className="block text-sm font-bold text-slate-700 mb-2">Upload a booking docket (PDF)</span>
-          <div className="flex items-center gap-2">
-            <input ref={fileRef} type="file" accept="application/pdf,image/*" className="hidden" onChange={e => pickFile(e.target.files?.[0])} />
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-              className="px-3 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-50">
-              {uploading ? 'Uploading…' : '📎 Choose PDF'}
-            </button>
-            {pendingUrl && <a href={pendingUrl} target="_blank" rel="noreferrer" className="text-xs text-emerald-700 underline">uploaded ✓ preview</a>}
-          </div>
-          <Field label="Title" required><input className={`${inputClass} mt-2`} value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Booking Docket — Flat A-1203" /></Field>
-          <div className="mt-1">
-            <input className={inputClass} value={pendingUrl} onChange={e => setPendingUrl(e.target.value)} placeholder="…or paste a PDF URL" />
-          </div>
+        <div className="rounded-lg border border-slate-200 p-4">
+          <span className="block text-sm font-bold text-slate-700 mb-1">Upload a booking docket (PDF)</span>
+          <p className="text-xs text-slate-400 mb-3">Just pick a PDF — it uploads and saves automatically.</p>
+          <input ref={fileRef} type="file" accept="application/pdf" className="hidden" onChange={e => pickFile(e.target.files?.[0])} />
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+            className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50">
+            {uploading ? 'Uploading…' : '📎 Choose PDF & Upload'}
+          </button>
         </div>
 
         <div>
