@@ -84,8 +84,25 @@ function Field({ label, value, big }) {
   );
 }
 
-// Short alert beep via Web Audio (no asset needed).
+// Play the custom SOS siren (public/sos_alarm.mp3). Falls back to a synthesized
+// beep if the file can't be played (e.g. autoplay blocked before any click).
+let sosAudio = null;
 function beep() {
+  try {
+    if (!sosAudio) {
+      sosAudio = new Audio('/sos_alarm.mp3');
+      sosAudio.volume = 1;
+    }
+    sosAudio.currentTime = 0;
+    const p = sosAudio.play();
+    if (p && typeof p.catch === 'function') p.catch(() => beepFallback());
+  } catch {
+    beepFallback();
+  }
+}
+
+// Synthesized fallback beep via Web Audio (no asset needed).
+function beepFallback() {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;

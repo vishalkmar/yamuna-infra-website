@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import api, { apiError } from '../../lib/api';
-import { uploadFile } from '../../lib/cloudinary';
+import { uploadDocument } from '../../lib/uploads';
 import { useToast } from '../../components/Toast';
 import PageHeader from '../../components/PageHeader';
 import SearchBar from '../../components/SearchBar';
@@ -81,7 +81,7 @@ function DocketManager({ resident, onClose, onChanged }) {
       // Only upload to Cloudinary here and stage the URL for preview. The docket
       // is created when the user clicks "Add docket" (save), so the submit button
       // never fires before a file is ready.
-      const asset = await uploadFile(file);
+      const asset = await uploadDocument(file);
       setPendingUrl(asset.url);
       if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ''));
       toast.success('PDF uploaded ✓ — now click “Add docket” to save');
