@@ -7,13 +7,49 @@ export default function SosAlertWatcher() {
   const [alerts, setAlerts] = useState([]);
   const [busy, setBusy] = useState(false);
   const prevCount = useRef(0);
+  const sirenRef = useRef(null);
+
+  // Prepare the custom siren once and "prime" it on the first user interaction.
+  // Browsers block programmatic audio until the page has had a user gesture, so
+  // we play+pause silently on the first click/key to unlock later auto-plays.
+  useEffect(() => {
+    const a = new Audio('/sos_alarm.mp3');
+    a.loop = true;
+    a.preload = 'auto';
+    a.volume = 1;
+    sirenRef.current = a;
+    const prime = () => {
+      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+      window.removeEventListener('pointerdown', prime);
+      window.removeEventListener('keydown', prime);
+    };
+    window.addEventListener('pointerdown', prime);
+    window.addEventListener('keydown', prime);
+    return () => {
+      window.removeEventListener('pointerdown', prime);
+      window.removeEventListener('keydown', prime);
+      a.pause();
+    };
+  }, []);
+
+  // Ring the siren continuously while any alert is active; stop once handled.
+  useEffect(() => {
+    const a = sirenRef.current;
+    if (!a) return;
+    if (alerts.length > 0) {
+      a.currentTime = 0;
+      const p = a.play();
+      if (p && typeof p.catch === 'function') p.catch(() => beepFallback());
+    } else {
+      a.pause();
+      a.currentTime = 0;
+    }
+  }, [alerts.length]);
 
   const poll = useCallback(async () => {
     try {
       const { data } = await api.get('/admin/sos/alerts/active');
       const list = data.data || [];
-      // Beep when a new alert arrives.
-      if (list.length > prevCount.current) beep();
       prevCount.current = list.length;
       setAlerts(list);
     } catch { /* ignore transient errors */ }
@@ -84,24 +120,8 @@ function Field({ label, value, big }) {
   );
 }
 
-// Play the custom SOS siren (public/sos_alarm.mp3). Falls back to a synthesized
-// beep if the file can't be played (e.g. autoplay blocked before any click).
-let sosAudio = null;
-function beep() {
-  try {
-    if (!sosAudio) {
-      sosAudio = new Audio('/sos_alarm.mp3');
-      sosAudio.volume = 1;
-    }
-    sosAudio.currentTime = 0;
-    const p = sosAudio.play();
-    if (p && typeof p.catch === 'function') p.catch(() => beepFallback());
-  } catch {
-    beepFallback();
-  }
-}
-
-// Synthesized fallback beep via Web Audio (no asset needed).
+// Synthesized fallback beep via Web Audio (no asset needed) — used only if the
+// custom siren can't play (e.g. autoplay still blocked).
 function beepFallback() {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
