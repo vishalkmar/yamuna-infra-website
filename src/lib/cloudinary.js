@@ -67,8 +67,9 @@ export async function importImageByUrl(url) {
   return url;
 }
 
-// Upload any file (PDF, etc.) via Cloudinary's /auto/ endpoint — same signed
-// params (resource_type is in the URL, not the signature). Returns { url, ... }.
+// Upload any file (PDF, etc.) via Cloudinary's /raw/ endpoint. Raw delivery is
+// not subject to the image-PDF delivery restriction, so the file opens/downloads
+// directly. Same signed params (resource_type is in the URL, not the signature).
 export async function uploadFile(file) {
   const { data } = await api.get('/admin/media/sign');
   const s = data.data;
@@ -78,7 +79,7 @@ export async function uploadFile(file) {
   form.append('timestamp', s.timestamp);
   form.append('signature', s.signature);
   if (s.folder) form.append('folder', s.folder);
-  const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/auto/upload`, { method: 'POST', body: form });
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/raw/upload`, { method: 'POST', body: form });
   const body = await res.json();
   if (!res.ok) throw new Error(body?.error?.message || 'Upload failed');
   return mapResult(body);

@@ -78,15 +78,13 @@ function DocketManager({ resident, onClose, onChanged }) {
     if (!file) return;
     setUploading(true);
     try {
+      // Only upload to Cloudinary here and stage the URL for preview. The docket
+      // is created when the user clicks "Add docket" (save), so the submit button
+      // never fires before a file is ready.
       const asset = await uploadFile(file);
-      const docTitle = (title && title.trim()) || file.name.replace(/\.[^.]+$/, '');
-      // Upload + add in one step so the docket appears immediately.
-      const { data } = await api.post('/admin/documents', {
-        userId: resident.id, title: docTitle, url: asset.url, kind: 'booking_docket',
-      });
-      setDocs(data.data); setTitle(''); setPendingUrl('');
-      toast.success('Docket uploaded ✓');
-      onChanged && onChanged();
+      setPendingUrl(asset.url);
+      if (!title.trim()) setTitle(file.name.replace(/\.[^.]+$/, ''));
+      toast.success('PDF uploaded ✓ — now click “Add docket” to save');
     } catch (e) {
       toast.error(apiError(e, 'Upload failed — check the file or paste a URL'));
     } finally { setUploading(false); }
