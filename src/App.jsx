@@ -1,12 +1,60 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastProvider } from './components/Toast';
 import { AuthProvider } from './context/AuthContext';
+import { AgentAuthProvider } from './context/AgentAuthContext';
 import Protected from './components/Protected';
+import AgentProtected from './components/AgentProtected';
 import AdminLayout, { MODULES } from './layouts/AdminLayout';
+import AgentLayout from './layouts/AgentLayout';
+import AgentLogin from './pages/agent/auth/AgentLogin';
+import AgentRegister from './pages/agent/auth/AgentRegister';
+import AgentDashboard from './pages/agent/AgentDashboard';
+import AgentKyc from './pages/agent/AgentKyc';
+import AgentBank from './pages/agent/AgentBank';
+import AgentInventory from './pages/agent/AgentInventory';
+import AgentLeads from './pages/agent/leads/AgentLeads';
+import AgentPipeline from './pages/agent/leads/AgentPipeline';
+import AgentTasks from './pages/agent/tasks/AgentTasks';
+import AgentVisits from './pages/agent/visits/AgentVisits';
+import AgentBookings from './pages/agent/bookings/AgentBookings';
+import AgentEarnings from './pages/agent/earnings/AgentEarnings';
+import AgentPayouts from './pages/agent/payouts/AgentPayouts';
+import AgentTargets from './pages/agent/targets/AgentTargets';
+import AgentLeaderboard from './pages/agent/leaderboard/AgentLeaderboard';
+import AgentNotifications from './pages/agent/notifications/AgentNotifications';
+import AgentCollateral from './pages/agent/resources/AgentCollateral';
+import AgentTraining from './pages/agent/resources/AgentTraining';
+import AgentNews from './pages/agent/news/AgentNews';
+import AgentTickets from './pages/agent/support/AgentTickets';
+import AgentAi from './pages/agent/ai/AgentAi';
 import Login from './pages/auth/Login';
 import UsersList from './pages/users/UsersList';
 import UserDetail from './pages/users/UserDetail';
+import AgentsList from './pages/agents/AgentsList';
+import AgentDetail from './pages/agents/AgentDetail';
+import AgentTiers from './pages/agents/AgentTiers';
+import AmsDashboard from './pages/agents/AmsDashboard';
+import Projects from './pages/agents/inventory/Projects';
+import ProjectInventory from './pages/agents/inventory/ProjectInventory';
+import Leads from './pages/agents/leads/Leads';
+import Pipeline from './pages/agents/leads/Pipeline';
+import Visits from './pages/agents/visits/Visits';
+import Bookings from './pages/agents/bookings/Bookings';
+import CommissionRules from './pages/agents/commission/CommissionRules';
+import CommissionLedger from './pages/agents/commission/CommissionLedger';
+import Payouts from './pages/agents/payouts/Payouts';
+import Targets from './pages/agents/targets/Targets';
+import LeaderboardPage from './pages/agents/leaderboard/LeaderboardPage';
+import Analytics from './pages/agents/analytics/Analytics';
+import AgentNotify from './pages/agents/notify/AgentNotify';
+import Collateral from './pages/agents/resources/Collateral';
+import Training from './pages/agents/resources/Training';
+import Announcements from './pages/agents/news/Announcements';
+import Tickets from './pages/agents/support/Tickets';
+import Templates from './pages/agents/templates/Templates';
+import Bi from './pages/agents/bi/Bi';
+import AmsSettings from './pages/agents/settings/AmsSettings';
 import ConstructionList from './pages/construction/ConstructionList';
 import ConstructionManage from './pages/construction/ConstructionManage';
 import PaymentPlanList from './pages/payments/PaymentPlanList';
@@ -45,12 +93,12 @@ import WellnessBookings from './pages/wellness/Bookings';
 import Equipment from './pages/mobility/Equipment';
 import MobilityCategories from './pages/mobility/Categories';
 import MobilityRequests from './pages/mobility/Requests';
-import Announcements from './pages/community/Announcements';
+import CommunityAnnouncements from './pages/community/Announcements';
 import CommunityEvents from './pages/community/Events';
 import Visitors from './pages/community/Visitors';
 import Offers from './pages/rewards/Offers';
 import Redemptions from './pages/rewards/Redemptions';
-import Projects from './pages/rewards/Projects';
+import RewardProjects from './pages/rewards/Projects';
 import Referrals from './pages/rewards/Referrals';
 import Notifications from './pages/notifications/Notifications';
 import Dashboard from './pages/dashboard/Dashboard';
@@ -63,7 +111,7 @@ import Admins from './pages/audit/Admins';
 import Ai from './pages/ai/Ai';
 
 // Modules with real pages now (excluded from the ComingSoon fallback).
-const BUILT = ['/users', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
+const BUILT = ['/users', '/agents', '/agents/dashboard', '/agents/inventory', '/agents/leads', '/agents/pipeline', '/agents/visits', '/agents/bookings', '/agents/commission', '/agents/payouts', '/agents/targets', '/agents/leaderboard', '/agents/analytics', '/agents/notify', '/agents/collateral', '/agents/training', '/agents/news', '/agents/support', '/agents/templates', '/agents/bi', '/agents/settings', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
 
 function ComingSoon() {
   return (
@@ -75,11 +123,63 @@ function ComingSoon() {
   );
 }
 
+// Auth-provider shells — scope each portal's auth context to its own route tree
+// so admin and agent sessions stay fully isolated inside one app.
+function AdminShell() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+}
+function AgentShell() {
+  return (
+    <AgentAuthProvider>
+      <Outlet />
+    </AgentAuthProvider>
+  );
+}
+
 export default function App() {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <Routes>
+      <Routes>
+        {/* ===== Agent (Channel Partner) portal — separate auth domain ===== */}
+        <Route element={<AgentShell />}>
+          <Route path="/agent/login" element={<AgentLogin />} />
+          <Route path="/agent/register" element={<AgentRegister />} />
+          <Route
+            path="/agent"
+            element={
+              <AgentProtected>
+                <AgentLayout />
+              </AgentProtected>
+            }
+          >
+            <Route index element={<AgentDashboard />} />
+            <Route path="kyc" element={<AgentKyc />} />
+            <Route path="bank" element={<AgentBank />} />
+            <Route path="inventory" element={<AgentInventory />} />
+            <Route path="leads" element={<AgentLeads />} />
+            <Route path="pipeline" element={<AgentPipeline />} />
+            <Route path="tasks" element={<AgentTasks />} />
+            <Route path="visits" element={<AgentVisits />} />
+            <Route path="bookings" element={<AgentBookings />} />
+            <Route path="earnings" element={<AgentEarnings />} />
+            <Route path="payouts" element={<AgentPayouts />} />
+            <Route path="targets" element={<AgentTargets />} />
+            <Route path="leaderboard" element={<AgentLeaderboard />} />
+            <Route path="notifications" element={<AgentNotifications />} />
+            <Route path="collateral" element={<AgentCollateral />} />
+            <Route path="training" element={<AgentTraining />} />
+            <Route path="news" element={<AgentNews />} />
+            <Route path="support" element={<AgentTickets />} />
+            <Route path="ai" element={<AgentAi />} />
+          </Route>
+        </Route>
+
+        {/* ===== Admin portal ===== */}
+        <Route element={<AdminShell />}>
           <Route path="/login" element={<Login />} />
           <Route
             element={
@@ -94,6 +194,33 @@ export default function App() {
             {/* A3 — Users & Residents */}
             <Route path="/users" element={<UsersList />} />
             <Route path="/users/:id" element={<UserDetail />} />
+
+            {/* AMS — Agents (CRM): directory, tiers, detail (1.2/1.4/1.5) */}
+            <Route path="/agents/dashboard" element={<AmsDashboard />} />
+            <Route path="/agents" element={<AgentsList />} />
+            <Route path="/agents/tiers" element={<AgentTiers />} />
+            {/* AMS — Inventory (2.1) — declared before /agents/:id so static wins */}
+            <Route path="/agents/inventory" element={<Projects />} />
+            <Route path="/agents/inventory/:projectId" element={<ProjectInventory />} />
+            <Route path="/agents/leads" element={<Leads />} />
+            <Route path="/agents/pipeline" element={<Pipeline />} />
+            <Route path="/agents/visits" element={<Visits />} />
+            <Route path="/agents/bookings" element={<Bookings />} />
+            <Route path="/agents/commission" element={<CommissionRules />} />
+            <Route path="/agents/commission/ledger" element={<CommissionLedger />} />
+            <Route path="/agents/payouts" element={<Payouts />} />
+            <Route path="/agents/targets" element={<Targets />} />
+            <Route path="/agents/leaderboard" element={<LeaderboardPage />} />
+            <Route path="/agents/analytics" element={<Analytics />} />
+            <Route path="/agents/notify" element={<AgentNotify />} />
+            <Route path="/agents/collateral" element={<Collateral />} />
+            <Route path="/agents/training" element={<Training />} />
+            <Route path="/agents/news" element={<Announcements />} />
+            <Route path="/agents/support" element={<Tickets />} />
+            <Route path="/agents/templates" element={<Templates />} />
+            <Route path="/agents/bi" element={<Bi />} />
+            <Route path="/agents/settings" element={<AmsSettings />} />
+            <Route path="/agents/:id" element={<AgentDetail />} />
 
             {/* Construction System Management */}
             <Route path="/construction" element={<ConstructionList />} />
@@ -160,14 +287,14 @@ export default function App() {
             <Route path="/mobility/requests" element={<MobilityRequests />} />
 
             {/* A12 — Community & Visitors */}
-            <Route path="/community" element={<Announcements />} />
+            <Route path="/community" element={<CommunityAnnouncements />} />
             <Route path="/community/events" element={<CommunityEvents />} />
             <Route path="/community/visitors" element={<Visitors />} />
 
             {/* A13 — Rewards & Projects */}
             <Route path="/rewards" element={<Offers />} />
             <Route path="/rewards/redemptions" element={<Redemptions />} />
-            <Route path="/rewards/projects" element={<Projects />} />
+            <Route path="/rewards/projects" element={<RewardProjects />} />
             <Route path="/rewards/referrals" element={<Referrals />} />
 
             {/* A14 — Notifications & Broadcast */}
@@ -193,8 +320,8 @@ export default function App() {
             ))}
             <Route path="*" element={<ComingSoon />} />
           </Route>
-        </Routes>
-      </AuthProvider>
+        </Route>
+      </Routes>
     </ToastProvider>
   );
 }
