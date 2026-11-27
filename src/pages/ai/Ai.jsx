@@ -25,6 +25,11 @@ export default function Ai() {
   const [q, setQ] = useState('');
   const [answer, setAnswer] = useState(null);
   const [thinking, setThinking] = useState(false);
+  const [asUser, setAsUser] = useState('');
+  const [residents, setResidents] = useState([]);
+  const [health, setHealth] = useState(null);
+  const [checking, setChecking] = useState(false);
+  const [caps, setCaps] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -36,6 +41,19 @@ export default function Ai() {
   }, [toast]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    api.get('/admin/ai/capabilities').then(r => setCaps(r.data.data)).catch(() => {});
+    api.get('/admin/users', { params: { pageSize: 100 } }).then(r => setResidents(r.data.data.rows || [])).catch(() => {});
+  }, []);
+
+  // Live probe of every model in the chain + embeddings + Pinecone.
+  const checkHealth = useCallback(async () => {
+    setChecking(true);
+    try { const { data } = await api.get('/admin/ai/health', { timeout: 60000 }); setHealth(data.data); }
+    catch (e) { toast.error(apiError(e, 'Health check failed')); } finally { setChecking(false); }
+  }, [toast]);
+  useEffect(() => { if (tab === 'health' && !health) checkHealth(); }, [tab, health, checkHealth]);
   const setF = (k, v) => setModal(m => ({ ...m, form: { ...m.form, [k]: v } }));
 
   async function save() {
@@ -79,7 +97,7 @@ export default function Ai() {
   async function ask() {
     if (!q.trim()) return;
     setThinking(true); setAnswer(null);
-    try { const { data } = await api.post('/admin/ai/chat', { message: q }); setAnswer(data.data); }
+    try { const { data } = await api.post('/admin/ai/chat', { message: q, asUserId: asUser ? Number(asUser) : null }, { timeout: 60000 }); setAnswer(data.data); }
     catch (e) { toast.error(apiError(e)); } finally { setThinking(false); }
   }
 
@@ -116,12 +134,13 @@ export default function Ai() {
         <span className={`px-2 py-1 rounded ${ready.llm ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>LLM {ready.llm ? 'connected' : 'fallback mode'}</span>
         <span className={`px-2 py-1 rounded ${ready.emb ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>Embeddings {ready.emb ? 'connected' : 'keyword fallback'}</span>
         <span className={`px-2 py-1 rounded ${ready.pinecone ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>Pinecone {ready.pinecone ? 'connected' : 'off (using in-DB vectors)'}</span>
-        <span className="px-2 py-1 rounded bg-blue-100 text-blue-700" title="The bot pulls real-time data from these read APIs based on the question">⚡ Live APIs: temples · doctors · food · tiffin · transport · amenities · wellness · spiritual · mobility · rewards · announcements · events</span>
+        <span className="px-2 py-1 rounded bg-blue-100 text-blue-700" title="The bot pulls real-time data from these read APIs based on the question">⚡ Live APIs: {caps ? caps.tools.map(t => t.name.replace('_', ' ')).join(' · ') : '…'}</span>
+        {caps && <span className="px-2 py-1 rounded bg-violet-100 text-violet-700" title={'Fallbacks: ' + caps.models.fallbacks.join(', ')}>🧠 {caps.models.primary.split('/').pop()} + {caps.models.fallbacks.length} fallback(s)</span>}
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 border-b border-slate-200">
-        {[['knowledge', `📚 Knowledge (${knowledge.length})`], ['instructions', `📋 Instructions (${instructions.length})`], ['test', '🧪 Test console']].map(([k, label]) => (
+        {[['knowledge', `📚 Knowledge (${knowledge.length})`], ['instructions', `📋 Instructions (${instructions.length})`], ['guide', `🛕 Built-in Braj guide (${caps?.guide.length || 0})`], ['test', '🧪 Test console'], ['health', '🩺 Model health']].map(([k, label]) => (
           <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition ${tab === k ? 'border-brand-primary text-brand-primary' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>{label}</button>
         ))}
       </div>
@@ -149,27 +168,113 @@ export default function Ai() {
         </div>
       )}
 
-      {tab === 'test' && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 max-w-2xl">
-          <h3 className="font-bold text-slate-800 mb-1">🧪 Test console</h3>
-          <p className="text-xs text-slate-400 mb-3">Ask as a resident would — see the answer + which knowledge was used.</p>
-          <div className="flex gap-2">
-            <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && ask()} className={inputClass} placeholder="e.g. What are the aarti timings?" />
-            <button onClick={ask} disabled={thinking} className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50">{thinking ? '…' : 'Ask'}</button>
+      {tab === 'guide' && (
+        <div>
+          <p className="text-sm text-slate-500 mb-3">
+            Built into the bot — always available, even with an empty knowledge base. Your own knowledge &amp; instructions
+            <b> always rank above</b> this guide, so add an FAQ to override any detail (e.g. this season&apos;s exact aarti timings).
+          </p>
+          <div className="grid md:grid-cols-2 gap-3">
+            {(caps?.guide || []).map(g => (
+              <details key={g.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                <summary className="cursor-pointer font-semibold text-slate-800">🛕 {g.title}</summary>
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">{g.text}</p>
+              </details>
+            ))}
           </div>
-          {answer && (
-            <div className="mt-4">
-              <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-800 whitespace-pre-wrap">{answer.answer || 'No answer.'}</div>
-              <div className="text-xs text-slate-400 mt-2">Mode: <b>{answer.mode}</b>{answer.sources?.length ? ` · Sources: ${[...new Set(answer.sources)].join(', ')}` : ''}</div>
-              {answer.retrieved?.length > 0 && (
-                <details className="mt-2 text-xs text-slate-500">
-                  <summary className="cursor-pointer">Retrieved chunks ({answer.retrieved.length})</summary>
-                  <ul className="mt-1 space-y-1">
-                    {answer.retrieved.map((c, i) => <li key={i} className="border-l-2 border-slate-200 pl-2">{c.text}</li>)}
-                  </ul>
-                </details>
-              )}
+        </div>
+      )}
+
+      {tab === 'test' && (
+        <div className="grid lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-3 bg-white rounded-xl border border-slate-200 p-5">
+            <h3 className="font-bold text-slate-800 mb-1">🧪 Test console</h3>
+            <p className="text-xs text-slate-400 mb-3">Ask as a resident would. Pick a resident to also test personal questions (their payments, dues, property, dockets).</p>
+            <div className="flex flex-wrap gap-2 mb-2">
+              <select value={asUser} onChange={e => setAsUser(e.target.value)} className="text-sm border border-slate-300 rounded-lg px-3 py-2">
+                <option value="">Anonymous (no personal data)</option>
+                {residents.map(r => <option key={r.id} value={r.id}>👤 {r.name || r.mobile}</option>)}
+              </select>
             </div>
+            <div className="flex gap-2">
+              <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && ask()} className={inputClass} placeholder="e.g. Bihari ji ki shayan aarti kab hai? / Meri agli kist kab hai?" />
+              <button onClick={ask} disabled={thinking} className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 whitespace-nowrap">{thinking ? 'Thinking…' : 'Ask'}</button>
+            </div>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {['Bihari ji ki shayan aarti kab hai?', 'Govardhan parikrama kitne km ki hai?', 'Emergency number kya hai?', 'Meri agli kist kab hai aur kitna baaki hai?', 'Aaj kaun se doctor available hain?', 'Satvik tiffin plan kitne ka hai?'].map(s => (
+                <button key={s} onClick={() => setQ(s)} className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">{s}</button>
+              ))}
+            </div>
+            {answer && (
+              <div className="mt-4">
+                <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-800 whitespace-pre-wrap">{answer.answer || 'No answer.'}</div>
+                <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                  <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">Mode: <b>{answer.mode}</b></span>
+                  {answer.model && <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-700">🧠 {answer.model}</span>}
+                  {answer.ms != null && <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">⏱ {(answer.ms / 1000).toFixed(1)}s</span>}
+                  {answer.live?.length > 0 && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700">⚡ {answer.live.join(', ')}</span>}
+                  {answer.personal && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">👤 used resident&apos;s own data</span>}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+            <h3 className="font-bold text-slate-800 mb-2">📎 What the bot used</h3>
+            {!answer ? <p className="text-sm text-slate-400">Ask something to see the retrieved knowledge.</p>
+              : answer.retrieved?.length ? (
+                <ul className="space-y-2">
+                  {answer.retrieved.map((c, i) => (
+                    <li key={i} className="border border-slate-100 rounded-lg p-2">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="font-semibold text-slate-700 truncate">{c.sourceTitle}</span>
+                        <span className={`px-1.5 rounded ${c.via === 'guide' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>{c.via} · {Number(c.score).toFixed(2)}</span>
+                      </div>
+                      <p className="text-xs text-slate-500 line-clamp-4">{c.text}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-sm text-slate-400">No knowledge chunks — answered from live data / resident data.</p>}
+          </div>
+        </div>
+      )}
+
+      {tab === 'health' && (
+        <div className="bg-white rounded-xl border border-slate-200 p-5 max-w-3xl">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="font-bold text-slate-800">🩺 Model health</h3>
+              <p className="text-xs text-slate-400">Live probe of each model in the chain. NVIDIA retires free models without notice — a red row here means switch LLM_MODEL / LLM_FALLBACK_MODELS on the server.</p>
+            </div>
+            <button onClick={checkHealth} disabled={checking} className="px-3 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50 disabled:opacity-50 whitespace-nowrap">{checking ? 'Checking…' : '↻ Re-check'}</button>
+          </div>
+          {!health ? <p className="text-sm text-slate-400">{checking ? 'Probing models…' : '—'}</p> : (
+            <>
+              <div className={`mb-3 px-3 py-2 rounded-lg text-sm font-semibold ${health.healthy ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                {health.healthy ? '✅ Chatbot is healthy' : '⚠️ Chatbot is degraded — check the rows below'}
+              </div>
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-slate-500"><th className="py-1">Component</th><th>Status</th><th className="text-right">Latency</th></tr></thead>
+                <tbody className="divide-y divide-slate-100">
+                  {health.llm.models.map(m => (
+                    <tr key={m.model}>
+                      <td className="py-2">{m.primary ? '⭐ ' : '↳ '}{m.model}</td>
+                      <td><StatusBadge status={m.ok ? 'active' : 'failed'}>{m.ok ? 'OK' : 'Down'}</StatusBadge></td>
+                      <td className="text-right text-slate-500">{(m.ms / 1000).toFixed(1)}s</td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-2">🔎 Embeddings · {health.llm.embeddings.model} ({health.llm.embeddings.dim || '—'} dims)</td>
+                    <td><StatusBadge status={health.llm.embeddings.ok ? 'active' : 'failed'}>{health.llm.embeddings.ok ? 'OK' : 'Down'}</StatusBadge></td>
+                    <td className="text-right text-slate-500">{health.llm.embeddings.ms != null ? `${(health.llm.embeddings.ms / 1000).toFixed(1)}s` : '—'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2">🌲 Pinecone vector DB</td>
+                    <td><StatusBadge status={health.pinecone.ok ? 'active' : health.pinecone.configured ? 'failed' : 'inactive'}>{health.pinecone.ok ? 'OK' : health.pinecone.configured ? 'Error' : 'Not configured'}</StatusBadge></td>
+                    <td className="text-right text-slate-400 text-xs">{health.pinecone.error || ''}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       )}

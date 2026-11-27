@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import ModuleTabs, { moduleOf } from '../components/ModuleTabs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import api, { apiError } from '../lib/api';
@@ -32,18 +33,19 @@ export const MODULES = [
   { path: '/agents/bi', label: 'BI Dashboard', icon: '📉', roles: ['superadmin', 'manager'] },
   { path: '/agents/settings', label: 'AMS Settings', icon: '⚙️', roles: ['superadmin', 'manager'] },
   { path: '/construction', label: 'Construction System', icon: '🏗️' },
-  { path: '/payment-plan', label: 'Payments & Plan', icon: '💳' },
+  { path: '/payment-plan/dashboard', match: '/payment-plan', label: 'Payments & Transactions', icon: '💳' },
+  { path: '/payment-plan/bookings', label: 'Property Bookings', icon: '🏘️' },
   { path: '/sos', label: 'SOS & Emergency', icon: '🆘' },
   { path: '/dockets', label: 'Booking Dockets', icon: '📘' },
   { path: '/site', label: 'Site Overview', icon: '🗺️' },
-  { path: '/services', label: 'Services & Providers', icon: '🛎️' },
-  { path: '/food', label: 'Food Ordering', icon: '🍽️' },
-  { path: '/healthcare', label: 'Doctors & Healthcare', icon: '🩺' },
-  { path: '/mobility', label: 'Mobility Aids', icon: '🦽' },
-  { path: '/wellness', label: 'Wellness & Spiritual', icon: '🧘' },
-  { path: '/temples', label: 'Temple Directory', icon: '🛕' },
-  { path: '/transport', label: 'Transport (Cabs)', icon: '🚕' },
-  { path: '/amenities', label: 'Amenities & Clubhouse', icon: '🎯' },
+  { path: '/services/dashboard', match: '/services', label: 'Services & Providers', icon: '🛎️' },
+  { path: '/food/dashboard', match: '/food', label: 'Food Ordering', icon: '🍽️' },
+  { path: '/healthcare/dashboard', match: '/healthcare', label: 'Doctors & Healthcare', icon: '🩺' },
+  { path: '/mobility/dashboard', match: '/mobility', label: 'Mobility Aids', icon: '🦽' },
+  { path: '/wellness/dashboard', match: '/wellness', label: 'Wellness & Spiritual', icon: '🧘' },
+  { path: '/temples/dashboard', match: '/temples', label: 'Temple Directory', icon: '🛕' },
+  { path: '/transport/dashboard', match: '/transport', label: 'Transport (Cabs)', icon: '🚕' },
+  { path: '/amenities/dashboard', match: '/amenities', label: 'Amenities & Clubhouse', icon: '🎯' },
   { path: '/community', label: 'Community & Visitors', icon: '📢' },
   { path: '/rewards', label: 'Rewards & Projects', icon: '🎁' },
   { path: '/notifications', label: 'Notifications', icon: '🔔' },
@@ -55,6 +57,8 @@ export const MODULES = [
 
 function Sidebar({ role }) {
   const items = MODULES.filter(m => !m.roles || m.roles.includes(role));
+  const { pathname } = useLocation();
+  const currentModule = moduleOf(pathname);
   return (
     <aside className="w-64 shrink-0 bg-brand-dark text-slate-200 h-screen sticky top-0 overflow-y-auto">
       <div className="px-5 py-5 border-b border-white/10 flex items-center gap-3">
@@ -71,7 +75,7 @@ function Sidebar({ role }) {
             to={m.path}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm mb-1 transition ${
-                isActive ? 'bg-brand-primary text-white font-semibold' : 'hover:bg-white/5'
+                (m.match ? currentModule === m.match && !items.some(o => o !== m && o.path === pathname) : isActive) ? 'bg-brand-primary text-white font-semibold' : 'hover:bg-white/5'
               }`
             }
           >
@@ -171,6 +175,7 @@ export default function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar admin={admin} onLogout={onLogout} />
         <main className="p-6 flex-1">
+          <ModuleTabs />
           <Outlet />
         </main>
       </div>

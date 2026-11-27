@@ -109,9 +109,12 @@ import ReminderCategories from './pages/settings/ReminderCategories';
 import AuditLog from './pages/audit/AuditLog';
 import Admins from './pages/audit/Admins';
 import Ai from './pages/ai/Ai';
+import ModuleDashboard from './pages/insights/ModuleDashboard';
+import PaymentsDashboard from './pages/payments/PaymentsDashboard';
+import PropertyBookings from './pages/payments/PropertyBookings';
 
 // Modules with real pages now (excluded from the ComingSoon fallback).
-const BUILT = ['/users', '/agents', '/agents/dashboard', '/agents/inventory', '/agents/leads', '/agents/pipeline', '/agents/visits', '/agents/bookings', '/agents/commission', '/agents/payouts', '/agents/targets', '/agents/leaderboard', '/agents/analytics', '/agents/notify', '/agents/collateral', '/agents/training', '/agents/news', '/agents/support', '/agents/templates', '/agents/bi', '/agents/settings', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai'];
+const BUILT = ['/users', '/agents', '/agents/dashboard', '/agents/inventory', '/agents/leads', '/agents/pipeline', '/agents/visits', '/agents/bookings', '/agents/commission', '/agents/payouts', '/agents/targets', '/agents/leaderboard', '/agents/analytics', '/agents/notify', '/agents/collateral', '/agents/training', '/agents/news', '/agents/support', '/agents/templates', '/agents/bi', '/agents/settings', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai', '/services/dashboard', '/food/dashboard', '/healthcare/dashboard', '/mobility/dashboard', '/wellness/dashboard', '/temples/dashboard', '/transport/dashboard', '/amenities/dashboard', '/payment-plan/dashboard', '/payment-plan/bookings'];
 
 function ComingSoon() {
   return (
@@ -236,10 +239,20 @@ export default function App() {
             <Route path="/site" element={<SiteOverview />} />
 
             {/* Payments & Plan (per-property) */}
+            <Route path="/payment-plan/dashboard" element={<PaymentsDashboard />} />
+            <Route path="/payment-plan/bookings" element={<PropertyBookings />} />
             <Route path="/payment-plan" element={<PaymentPlanList />} />
             <Route path="/payment-plan/:propertyId" element={<PaymentPlanManage />} />
 
             {/* A4 — Services & Providers */}
+            <Route path="/services/dashboard" element={<ModuleDashboard key="services" module="services" icon="🛎️" />} />
+            <Route path="/food/dashboard" element={<ModuleDashboard key="food" module="food" icon="🍽️" />} />
+            <Route path="/healthcare/dashboard" element={<ModuleDashboard key="healthcare" module="healthcare" icon="🩺" />} />
+            <Route path="/mobility/dashboard" element={<ModuleDashboard key="mobility" module="mobility" icon="🦽" />} />
+            <Route path="/wellness/dashboard" element={<ModuleDashboard key="wellness" module="wellness" icon="🧘" />} />
+            <Route path="/temples/dashboard" element={<ModuleDashboard key="temples" module="temples" icon="🛕" />} />
+            <Route path="/transport/dashboard" element={<ModuleDashboard key="transport" module="transport" icon="🚕" />} />
+            <Route path="/amenities/dashboard" element={<ModuleDashboard key="amenities" module="amenities" icon="🎯" />} />
             <Route path="/services" element={<ServiceCategories />} />
             <Route path="/services/bookings" element={<ServiceBookings />} />
             <Route path="/services/categories/:categoryId/providers" element={<ServiceProviders />} />
