@@ -106,7 +106,6 @@ import SupportChat from './pages/support/SupportChat';
 import Dashboard from './pages/dashboard/Dashboard';
 import Media from './pages/media/Media';
 import Settings from './pages/settings/Settings';
-import DailyContent from './pages/settings/DailyContent';
 import ReminderCategories from './pages/settings/ReminderCategories';
 import AuditLog from './pages/audit/AuditLog';
 import Admins from './pages/audit/Admins';
@@ -322,7 +321,6 @@ export default function App() {
 
             {/* A18 — App Settings & Content */}
             <Route path="/settings" element={<Settings />} />
-            <Route path="/settings/daily" element={<DailyContent />} />
             <Route path="/settings/reminders" element={<ReminderCategories />} />
 
             {/* A19 — Audit Logs & Role Admin (superadmin) */}

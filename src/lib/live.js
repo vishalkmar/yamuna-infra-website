@@ -5,6 +5,12 @@ const typed = new Map(); // type -> Set<fn>
 let ws = null;
 let retry = 0;
 let timer = null;
+let connected = false;
+const statusSubs = new Set();
+function setConnected(v) { if (connected !== v) { connected = v; statusSubs.forEach(f => f(v)); } }
+export const isConnected = () => connected;
+export function onStatus(fn) { statusSubs.add(fn); fn(connected); return () => statusSubs.delete(fn); }
+export function ensureLive() { if (!ws) { retry = 0; connect(); } }
 
 function wsUrl(token) {
   const base = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -16,7 +22,11 @@ function connect() {
   const token = localStorage.getItem('admin_token');
   if (!token || ws) return;
   try { ws = new WebSocket(wsUrl(token)); } catch (_) { ws = null; return; }
-  ws.onopen = () => { retry = 0; };
+  ws.onopen = () => {
+    retry = 0; setConnected(true);
+    const sock = ws;
+    const ping = setInterval(() => { if (sock.readyState === 1) { try { sock.send('ping'); } catch (_) { /* noop */ } } else clearInterval(ping); }, 30000);
+  };
   ws.onmessage = e => {
     let msg; try { msg = JSON.parse(e.data); } catch (_) { return; }
     if (msg.type === 'activity' && msg.data) listeners.forEach(fn => fn(msg.data));
@@ -24,10 +34,11 @@ function connect() {
   };
   ws.onclose = () => {
     ws = null;
+    setConnected(false);
     if ((!listeners.size && !typed.size) || !localStorage.getItem('admin_token')) return;
-    retry = Math.min(retry + 1, 6);
+    retry = Math.min(retry + 1, 4);
     clearTimeout(timer);
-    timer = setTimeout(connect, 1000 * 2 ** retry);
+    timer = setTimeout(connect, Math.min(15000, 1000 * 2 ** retry));
   };
   ws.onerror = () => {};
 }

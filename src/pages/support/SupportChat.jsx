@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom';
 import api, { apiError } from '../../lib/api';
 import { useToast } from '../../components/Toast';
-import { onSocket } from '../../lib/live';
+import { onSocket, onStatus, isConnected, ensureLive } from '../../lib/live';
 
 // WhatsApp-Web style support inbox: conversations on the left, the chat on
 // the right. Live over the socket; ticks ✓ sent · ✓✓ delivered · blue ✓✓ read.
@@ -43,6 +43,8 @@ export default function SupportChat() {
   const [resident, setResident] = useState(null);
   const bottom = useRef(null);
   const fileRef = useRef(null);
+  const [live, setLive] = useState(isConnected());
+  useEffect(() => onStatus(setLive), []);
   const activeRef = useRef(active);
   activeRef.current = active;
 
@@ -68,6 +70,30 @@ export default function SupportChat() {
   }, [active, toast]);
   useEffect(() => { setMsgs([]); setFiles([]); setText(''); loadMsgs(); }, [loadMsgs]);
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'end' }); }, [msgs]);
+
+  // Safety net: re-sync every 4s while the socket is down, every 15s while live.
+  useEffect(() => {
+    let n = 0;
+    const t = setInterval(async () => {
+      n += 1;
+      if (isConnected() && n % 4 !== 0) return;
+      ensureLive();
+      try {
+        const { data } = await api.get('/admin/support/conversations', { params: { search: search || undefined } });
+        setConvos(data.data);
+        const uid = activeRef.current;
+        if (uid) {
+          const r = await api.get(`/admin/support/conversations/${uid}`);
+          if (uid !== activeRef.current) return;
+          setMsgs(prev => [...r.data.data, ...prev.filter(m => m.tempId)]);
+          if (r.data.data.some(m => m.sender === 'user' && m.status !== 'read') && document.visibilityState === 'visible') {
+            api.post(`/admin/support/conversations/${uid}/read`).catch(() => {});
+          }
+        }
+      } catch (_) { /* offline */ }
+    }, 4000);
+    return () => clearInterval(t);
+  }, [search]);
 
   // Live updates
   useEffect(() => {
@@ -128,7 +154,12 @@ export default function SupportChat() {
       {/* conversations */}
       <aside className="w-[340px] shrink-0 border-r border-slate-200 flex flex-col">
         <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-          <div className="font-bold text-slate-800">Support Chat {totalUnread > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-xs">{totalUnread}</span>}</div>
+          <div className="flex items-center justify-between">
+            <div className="font-bold text-slate-800">Support Chat {totalUnread > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-xs">{totalUnread}</span>}</div>
+            <span className={`flex items-center gap-1 text-[11px] font-semibold ${live ? 'text-emerald-600' : 'text-amber-600'}`} title={live ? 'Real-time connection active' : 'Reconnecting — messages still sync every few seconds'}>
+              <span className={`w-2 h-2 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />{live ? 'Live' : 'Connecting…'}
+            </span>
+          </div>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search resident, phone…" className="mt-2 w-full text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white" />
         </div>
         <ul className="flex-1 overflow-y-auto">

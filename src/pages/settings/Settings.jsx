@@ -50,7 +50,6 @@ export default function Settings() {
   return (
     <div>
       <PageHeader title="App Settings & Content" subtitle="Feature flags, content pages & rotation">
-        <Link to="/settings/daily" className="px-3 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50">Daily content</Link>
         <Link to="/settings/reminders" className="px-3 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50">Reminder categories</Link>
       </PageHeader>
 
