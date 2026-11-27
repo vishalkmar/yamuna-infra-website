@@ -95,7 +95,7 @@ export default function Projects() {
   return (
     <div>
       <PageHeader title="Inventory — Projects" subtitle={`${rows.length} project${rows.length === 1 ? '' : 's'}`}>
-        <button onClick={openCreate} className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90">+ Add project</button>
+        <button onClick={openCreate} className="px-4 py-2 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90">+ Add property / project</button>
       </PageHeader>
 
       <div className="mb-4"><SearchBar value={search} onChange={setSearch} placeholder="Search name, location, city…" /></div>
@@ -114,7 +114,7 @@ export default function Projects() {
         )}
       />
 
-      <FormModal open={formOpen} title={edit ? 'Edit project' : 'Add project'} onClose={() => setFormOpen(false)} onSubmit={submit} submitting={busy} submitLabel={edit ? 'Save' : 'Create'} wide>
+      <FormModal open={formOpen} title={edit ? 'Edit property / project' : 'Add property / project'} onClose={() => setFormOpen(false)} onSubmit={submit} submitting={busy} submitLabel={edit ? 'Save' : 'Create'} wide>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Name" required><input className={inputClass} value={form.name} onChange={e => set('name', e.target.value)} /></Field>
           <Field label="RERA no."><input className={inputClass} value={form.reraNo || ''} onChange={e => set('reraNo', e.target.value)} /></Field>

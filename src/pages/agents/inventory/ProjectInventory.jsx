@@ -10,7 +10,24 @@ import FormModal, { Field, inputClass } from '../../../components/FormModal';
 import { fmtMoney, fmtDateTime } from '../../../lib/format';
 
 const UNIT_STATUS = ['available', 'held', 'blocked', 'booked', 'sold'];
-const towerEmpty = { name: '', totalFloors: '', description: '', sortOrder: 0 };
+const towerEmpty = { name: '', totalFloors: '', description: '', sortOrder: 0, meta: {} };
+// Building details kept on the tower (meta). Label, type, placeholder.
+const TOWER_FIELDS = [
+  ['unitsPerFloor', 'Units per floor', 'number', '4'],
+  ['totalUnits', 'Total units', 'number', '48'],
+  ['configurations', 'Configurations', 'text', '2BHK, 3BHK, Plot'],
+  ['basements', 'Basements / parking levels', 'number', '1'],
+  ['lifts', 'Lifts', 'number', '2'],
+  ['parking', 'Parking', 'text', 'Covered, 1 per flat'],
+  ['facing', 'Facing / view', 'text', 'East, Yamuna view'],
+  ['constructionStatus', 'Construction status', 'select', ['Not started', 'Under construction', 'Structure complete', 'Finishing', 'Ready to move']],
+  ['startDate', 'Construction start', 'date'],
+  ['expectedCompletion', 'Expected completion', 'date'],
+  ['possessionDate', 'Possession date', 'date'],
+  ['siteOpenTime', 'Site / sales office opens', 'time'],
+  ['siteCloseTime', 'Site / sales office closes', 'time'],
+  ['contactPerson', 'Site contact', 'text', 'Name · phone'],
+];
 const unitEmpty = { towerId: '', unitNo: '', floor: '', unitType: '', areaSqft: '', basePrice: 0, facing: '', status: 'available', notes: '', sortOrder: 0 };
 const bulkEmpty = { towerId: '', floorCount: 5, unitsPerFloor: 4, unitType: '', areaSqft: '', basePrice: 0, facing: '' };
 
@@ -67,7 +84,8 @@ export default function ProjectInventory() {
     if (!towerForm.name.trim()) { toast.error('Tower name required'); return; }
     setBusy(true);
     try {
-      const payload = { name: towerForm.name, totalFloors: towerForm.totalFloors ? Number(towerForm.totalFloors) : null, description: towerForm.description || null, sortOrder: Number(towerForm.sortOrder) || 0 };
+      const meta = Object.fromEntries(Object.entries(towerForm.meta || {}).filter(([, v]) => v !== '' && v != null));
+      const payload = { name: towerForm.name, totalFloors: towerForm.totalFloors ? Number(towerForm.totalFloors) : null, description: towerForm.description || null, sortOrder: Number(towerForm.sortOrder) || 0, meta };
       if (towerEdit) await api.put(`/admin/inventory/towers/${towerEdit.id}`, payload);
       else await api.post(`/admin/inventory/${projectId}/towers`, payload);
       toast.success('Saved'); setTowerOpen(false); loadProject();
@@ -127,6 +145,7 @@ export default function ProjectInventory() {
   const towers = data?.towers || [];
   const stats = data?.stats || {};
   const setTF = (k, v) => setTowerForm(f => ({ ...f, [k]: v }));
+  const setTM = (k, v) => setTowerForm(f => ({ ...f, meta: { ...(f.meta || {}), [k]: v } }));
   const setUF = (k, v) => setUnitForm(f => ({ ...f, [k]: v }));
   const setBF = (k, v) => setBulkForm(f => ({ ...f, [k]: v }));
 
@@ -169,19 +188,42 @@ export default function ProjectInventory() {
       {/* Towers */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-5">
         <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-slate-700">Towers / Blocks</h4>
-          <button onClick={() => { setTowerEdit(null); setTowerForm(towerEmpty); setTowerOpen(true); }} className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-semibold text-slate-600 hover:bg-slate-50">+ Add tower</button>
+          <div>
+            <h4 className="font-semibold text-slate-700">Towers / Blocks</h4>
+            <p className="text-xs text-slate-400">These appear in the resident “Add property” form (Tower / Block).</p>
+          </div>
+          <button onClick={() => { setTowerEdit(null); setTowerForm(towerEmpty); setTowerOpen(true); }} className="px-3 py-1.5 rounded-lg bg-brand-primary text-white text-sm font-semibold hover:opacity-90">+ Add tower / block</button>
         </div>
         {towers.length === 0 ? <p className="text-slate-400 text-sm">No towers. Units can also exist without a tower.</p> : (
-          <div className="flex flex-wrap gap-2">
-            {towers.map(t => (
-              <div key={t.id} className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                <span className="font-medium text-slate-700">{t.name}</span>
-                <span className="text-slate-400 text-xs">{t.unitCount} units{t.totalFloors ? ` · ${t.totalFloors} fl` : ''}</span>
-                <button onClick={() => { setTowerEdit(t); setTowerForm({ ...towerEmpty, ...t, totalFloors: t.totalFloors || '' }); setTowerOpen(true); }} className="text-slate-500 hover:underline text-xs">edit</button>
-                <button onClick={() => setTowerDel(t)} className="text-rose-600 hover:underline text-xs">del</button>
-              </div>
-            ))}
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {towers.map(t => {
+              const m = t.meta || {};
+              const facts = TOWER_FIELDS.filter(([k]) => m[k]).map(([k, label]) => [label, m[k]]);
+              return (
+                <div key={t.id} className="border border-slate-200 rounded-xl p-3 text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-bold text-slate-800">{t.name}</div>
+                      <div className="text-xs text-slate-400">{t.unitCount} units in inventory{t.totalFloors ? ` · ${t.totalFloors} floors` : ''}</div>
+                    </div>
+                    <div className="flex gap-2 text-xs">
+                      <button onClick={() => { setTowerEdit(t); setTowerForm({ ...towerEmpty, ...t, totalFloors: t.totalFloors || '', meta: t.meta || {} }); setTowerOpen(true); }} className="text-brand-primary font-semibold hover:underline">Edit</button>
+                      <button onClick={() => setTowerDel(t)} className="text-rose-600 font-semibold hover:underline">Delete</button>
+                    </div>
+                  </div>
+                  {t.description ? <p className="text-xs text-slate-500 mt-1">{t.description}</p> : null}
+                  {facts.length > 0 && (
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2 text-xs">
+                      {facts.map(([label, v]) => (
+                        <React.Fragment key={label}><dt className="text-slate-400">{label}</dt><dd className="text-slate-700 font-medium text-right">{String(v)}</dd></React.Fragment>
+                      ))}
+                    </dl>
+                  )}
+                  {m.rooms ? <p className="text-xs text-slate-600 mt-2 whitespace-pre-line"><b>Rooms / layout:</b> {m.rooms}</p> : null}
+                  {m.amenities ? <p className="text-xs text-slate-600 mt-1 whitespace-pre-line"><b>Amenities:</b> {m.amenities}</p> : null}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -219,10 +261,30 @@ export default function ProjectInventory() {
       />
 
       {/* Tower modal */}
-      <FormModal open={towerOpen} title={towerEdit ? 'Edit tower' : 'Add tower'} onClose={() => setTowerOpen(false)} onSubmit={saveTower} submitting={busy} submitLabel={towerEdit ? 'Save' : 'Create'}>
-        <Field label="Name" required><input className={inputClass} value={towerForm.name} onChange={e => setTF('name', e.target.value)} /></Field>
-        <Field label="Total floors"><input type="number" className={inputClass} value={towerForm.totalFloors} onChange={e => setTF('totalFloors', e.target.value)} /></Field>
-        <Field label="Description"><input className={inputClass} value={towerForm.description || ''} onChange={e => setTF('description', e.target.value)} /></Field>
+      <FormModal open={towerOpen} title={towerEdit ? 'Edit tower / block' : 'Add tower / block'} onClose={() => setTowerOpen(false)} onSubmit={saveTower} submitting={busy} submitLabel={towerEdit ? 'Save' : 'Create'} wide>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Tower / block name" required><input className={inputClass} value={towerForm.name} onChange={e => setTF('name', e.target.value)} placeholder="Tower A / Block 1" /></Field>
+          <Field label="Total floors"><input type="number" className={inputClass} value={towerForm.totalFloors} onChange={e => setTF('totalFloors', e.target.value)} placeholder="12" /></Field>
+          {TOWER_FIELDS.map(([k, label, type, ph]) => (
+            <Field key={k} label={label}>
+              {type === 'select' ? (
+                <select className={inputClass} value={towerForm.meta?.[k] || ''} onChange={e => setTM(k, e.target.value)}>
+                  <option value="">Select…</option>
+                  {ph.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              ) : (
+                <input type={type} className={inputClass} value={towerForm.meta?.[k] || ''} onChange={e => setTM(k, e.target.value)} placeholder={ph || ''} />
+              )}
+            </Field>
+          ))}
+        </div>
+        <Field label="Rooms / layout" hint="What each unit has — e.g. 2 bedrooms, 2 bathrooms, kitchen, hall, balcony">
+          <textarea rows={3} className={inputClass} value={towerForm.meta?.rooms || ''} onChange={e => setTM('rooms', e.target.value)} />
+        </Field>
+        <Field label="Amenities in this building">
+          <textarea rows={2} className={inputClass} value={towerForm.meta?.amenities || ''} onChange={e => setTM('amenities', e.target.value)} placeholder="Lift, power backup, CCTV, temple, garden…" />
+        </Field>
+        <Field label="Description / notes"><input className={inputClass} value={towerForm.description || ''} onChange={e => setTF('description', e.target.value)} /></Field>
         <Field label="Sort order"><input type="number" className={inputClass} value={towerForm.sortOrder} onChange={e => setTF('sortOrder', e.target.value)} /></Field>
       </FormModal>
 

@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import api, { apiError } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import FormModal, { Field, inputClass } from '../../components/FormModal';
-import { INDIA_STATES, PROPERTY_TYPES } from '../../lib/india';
+import PropertyFields, { SITE_DEFAULTS, toPropertyForm, areaPayload } from './PropertyFields';
 import { computePreview, FREQ_LABEL, inr } from '../../lib/loan';
 
 const PIN_RX = /^\d{6}$/;
 const blank = {
   label: '', projectName: '', tower: '', flatNo: '', floor: '',
-  areaSqft: '', propertyType: '', addressLine: '', city: '', state: '', pincode: '', notes: '',
+  areaSqft: '', areaValue: '', areaUnit: 'sqft', propertyType: '', addressLine: '', ...SITE_DEFAULTS, notes: '',
   workStatus: 'expected', workTargetDate: '', workPercent: '', floorsTotal: '', floorsDone: '',
   planTotalAmount: '', planDownpayment: '', planMonthly: '', planGap: 1, planFirstDue: '', planStart: '',
   planLateEnabled: false, planLateGrace: '', planLateType: 'flat', planLateValue: '', planLateMode: 'separate',
@@ -24,8 +24,7 @@ export default function PropertyFormModal({ open, userId, property, onClose, onS
   useEffect(() => {
     if (!open) return;
     setF(property ? {
-      ...blank, ...property,
-      areaSqft: property.areaSqft ?? '',
+      ...toPropertyForm(property, blank),
       workStatus: property.workStatus || 'expected',
       workTargetDate: property.workTargetDate ? String(property.workTargetDate).slice(0, 10) : '',
       workPercent: property.workPercent ?? '',
@@ -42,7 +41,7 @@ export default function PropertyFormModal({ open, userId, property, onClose, onS
     try {
       const body = {
         ...f,
-        areaSqft: f.areaSqft === '' ? null : Number(f.areaSqft),
+        ...areaPayload(f),
         workPercent: f.workPercent === '' ? 0 : Number(f.workPercent),
         floorsTotal: f.floorsTotal === '' ? null : Number(f.floorsTotal),
         floorsDone: f.floorsDone === '' ? null : Number(f.floorsDone),
@@ -76,31 +75,7 @@ export default function PropertyFormModal({ open, userId, property, onClose, onS
 
   return (
     <FormModal open={open} title={isEdit ? 'Edit property' : 'Add property'} onClose={onClose} onSubmit={submit} submitting={busy} submitLabel={isEdit ? 'Save' : 'Add property'}>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Label"><input className={inputClass} value={f.label} onChange={e => set('label', e.target.value)} placeholder="Home / Investment" /></Field>
-        <Field label="Project name"><input className={inputClass} value={f.projectName} onChange={e => set('projectName', e.target.value)} /></Field>
-        <Field label="Tower / Block"><input className={inputClass} value={f.tower} onChange={e => set('tower', e.target.value)} /></Field>
-        <Field label="Flat no."><input className={inputClass} value={f.flatNo} onChange={e => set('flatNo', e.target.value)} placeholder="A-1203" /></Field>
-        <Field label="Floor"><input className={inputClass} value={f.floor} onChange={e => set('floor', e.target.value)} /></Field>
-        <Field label="Area (sq.ft)"><input className={inputClass} value={f.areaSqft} onChange={e => set('areaSqft', e.target.value.replace(/[^\d.]/g, ''))} placeholder="1250" /></Field>
-        <Field label="Type">
-          <select className={inputClass} value={f.propertyType} onChange={e => set('propertyType', e.target.value)}>
-            <option value="">Select…</option>
-            {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </Field>
-        <Field label="Pincode"><input className={inputClass} value={f.pincode} onChange={e => set('pincode', e.target.value.replace(/\D/g, '').slice(0, 6))} /></Field>
-      </div>
-      <Field label="Property address"><input className={inputClass} value={f.addressLine} onChange={e => set('addressLine', e.target.value)} /></Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="City"><input className={inputClass} value={f.city} onChange={e => set('city', e.target.value)} /></Field>
-        <Field label="State">
-          <select className={inputClass} value={f.state || ''} onChange={e => set('state', e.target.value)}>
-            <option value="">Select state…</option>
-            {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </Field>
-      </div>
+      <PropertyFields p={f} set={set} />
       <Field label="Notes"><textarea rows={2} className={inputClass} value={f.notes || ''} onChange={e => set('notes', e.target.value)} /></Field>
 
       <div className="pt-2 border-t border-slate-100">

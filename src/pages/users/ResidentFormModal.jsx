@@ -3,7 +3,8 @@ import api, { apiError } from '../../lib/api';
 import { useToast } from '../../components/Toast';
 import FormModal, { Field, inputClass } from '../../components/FormModal';
 import ImageUploader from '../../components/ImageUploader';
-import { INDIA_STATES, PROPERTY_TYPES } from '../../lib/india';
+import { INDIA_STATES } from '../../lib/india';
+import PropertyFields, { SITE_DEFAULTS, areaPayload } from './PropertyFields';
 import { computePreview, FREQ_LABEL, inr } from '../../lib/loan';
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -12,7 +13,7 @@ const PIN_RX = /^\d{6}$/;
 
 const emptyProperty = () => ({
   label: '', projectName: '', tower: '', flatNo: '', floor: '',
-  areaSqft: '', propertyType: '', addressLine: '', city: '', state: '', pincode: '',
+  areaSqft: '', areaValue: '', areaUnit: 'sqft', propertyType: '', addressLine: '', ...SITE_DEFAULTS,
   workStatus: 'expected', workTargetDate: '', workPercent: '', floorsTotal: '', floorsDone: '',
   planTotalAmount: '', planDownpayment: '', planMonthly: '', planGap: 1, planFirstDue: '', planStart: '',
   planLateEnabled: false, planLateGrace: '', planLateType: 'flat', planLateValue: '', planLateMode: 'separate',
@@ -70,7 +71,7 @@ export default function ResidentFormModal({ open, mode = 'create', initial = nul
   }
 
   // Keep only properties the admin actually filled in (ignore default-only rows).
-  const MEANINGFUL = ['label', 'projectName', 'tower', 'flatNo', 'floor', 'areaSqft', 'propertyType', 'addressLine', 'city', 'state', 'pincode', 'planTotalAmount', 'planMonthly'];
+  const MEANINGFUL = ['label', 'projectName', 'tower', 'flatNo', 'floor', 'areaValue', 'propertyType', 'addressLine', 'planTotalAmount', 'planMonthly'];
   function cleanProperties() {
     return properties
       .filter(p => MEANINGFUL.some(k => String(p[k] ?? '').trim() !== ''))
@@ -92,7 +93,7 @@ export default function ResidentFormModal({ open, mode = 'create', initial = nul
           : undefined;
         return {
           ...p,
-          areaSqft: p.areaSqft === '' ? null : Number(p.areaSqft),
+          ...areaPayload(p),
           workPercent: p.workPercent === '' ? 0 : Number(p.workPercent),
           floorsTotal: p.floorsTotal === '' ? null : Number(p.floorsTotal),
           floorsDone: p.floorsDone === '' ? null : Number(p.floorsDone),
@@ -178,26 +179,7 @@ export default function ResidentFormModal({ open, mode = 'create', initial = nul
                   <button type="button" onClick={() => removeProp(i)} className="text-xs text-rose-600 hover:underline">Remove</button>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Label"><input className={inputClass} value={p.label} onChange={e => setProp(i, 'label', e.target.value)} placeholder="Home / Investment" /></Field>
-                <Field label="Project name"><input className={inputClass} value={p.projectName} onChange={e => setProp(i, 'projectName', e.target.value)} /></Field>
-                <Field label="Tower / Block"><input className={inputClass} value={p.tower} onChange={e => setProp(i, 'tower', e.target.value)} /></Field>
-                <Field label="Flat no."><input className={inputClass} value={p.flatNo} onChange={e => setProp(i, 'flatNo', e.target.value)} placeholder="A-1203" /></Field>
-                <Field label="Floor"><input className={inputClass} value={p.floor} onChange={e => setProp(i, 'floor', e.target.value)} /></Field>
-                <Field label="Area (sq.ft)"><input className={inputClass} value={p.areaSqft} onChange={e => setProp(i, 'areaSqft', e.target.value.replace(/[^\d.]/g, ''))} placeholder="1250" /></Field>
-                <Field label="Type">
-                  <select className={inputClass} value={p.propertyType} onChange={e => setProp(i, 'propertyType', e.target.value)}>
-                    <option value="">Select…</option>
-                    {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </Field>
-                <Field label="Pincode"><input className={inputClass} value={p.pincode} onChange={e => setProp(i, 'pincode', e.target.value.replace(/\D/g, '').slice(0, 6))} /></Field>
-              </div>
-              <Field label="Property address"><input className={inputClass} value={p.addressLine} onChange={e => setProp(i, 'addressLine', e.target.value)} /></Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="City"><input className={inputClass} value={p.city} onChange={e => setProp(i, 'city', e.target.value)} /></Field>
-                <Field label="State"><StateSelect value={p.state} onChange={v => setProp(i, 'state', v)} /></Field>
-              </div>
+              <PropertyFields p={p} set={(k, v) => setProp(i, k, v)} />
 
               <div className="mt-2 pt-2 border-t border-slate-200">
                 <span className="block text-xs font-bold text-slate-500 mb-2">Construction progress</span>
