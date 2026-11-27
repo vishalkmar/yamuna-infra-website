@@ -394,6 +394,31 @@ export default function UsersList() {
 
       {loading && !data ? <div className="text-slate-400 py-10 text-center">Loading resident CRM…</div> : tab === 'residents' ? (
         <>
+          <KpiGrid>
+            <Kpi icon="👥" label="Residents" value={k.total} sub={`${k.active} active · ${k.blocked} blocked`} />
+            <Kpi icon="🆕" label="Joined this month" value={k.newMonth} />
+            <Kpi icon="🏠" label="Properties" value={k.properties} sub={`${k.withProperty} residents own one`} onClick={() => pick('hasProperty', 'yes')} active={f.hasProperty === 'yes'} />
+            <Kpi icon="📄" label="Agreement value" value={moneyCompact(k.agreement)} sub={k.avgTicket ? `avg ${moneyCompact(k.avgTicket)} / resident` : ''} />
+            <Kpi icon="💰" label="Collected" value={moneyCompact(k.collected)} tone="good" sub={`${k.collectionPct} of agreement`} />
+            <Kpi icon="⏳" label="Outstanding" value={moneyCompact(k.outstanding)} tone="info" />
+            <Kpi icon="🚨" label="Overdue residents" value={k.overdueRes} tone="bad" sub={k.avgOverdueDays ? `avg ${k.avgOverdueDays} days late` : ''} onClick={() => pick('payStatus', 'overdue')} active={f.payStatus === 'overdue'} />
+            <Kpi icon="💸" label="Overdue amount" value={moneyCompact(k.overdueAmt)} tone="bad" />
+            <Kpi icon="⚠️" label="Late fees accruing" value={moneyCompact(k.lateFees)} tone={k.lateFees ? 'warn' : 'muted'} onClick={() => pick('lateFee', 'yes')} active={f.lateFee === 'yes'} />
+            <Kpi icon="📅" label="Due this month" value={moneyCompact(k.dueMonthAmt)} sub={`${k.dueMonthCount} installment(s)`} onClick={() => pick('dueThisMonth', 'yes')} active={f.dueThisMonth === 'yes'} />
+            <Kpi icon="✅" label="Collected this month" value={moneyCompact(k.paidMonth)} tone="good" />
+            <Kpi icon="⏰" label="Due next 7 days" value={moneyCompact(k.next7Amt)} tone="warn" sub={`${k.next7Count} installment(s)`} onClick={() => pick('payStatus', 'due_soon')} active={f.payStatus === 'due_soon'} />
+            <Kpi icon="🗓️" label="Due next 30 days" value={moneyCompact(k.next30Amt)} sub={`${k.next30Count} installment(s)`} />
+            <Kpi icon="🏁" label="Fully paid" value={k.completed} tone="good" onClick={() => pick('payStatus', 'completed')} active={f.payStatus === 'completed'} />
+            <Kpi icon="➖" label="No payment plan" value={k.noPlan} tone="muted" onClick={() => pick('payStatus', 'no_plan')} active={f.payStatus === 'no_plan'} />
+            <Kpi icon="🔖" label="Down payments" value={moneyCompact(k.downpayments)} />
+            <Kpi icon="📘" label="Docket coverage" value={pct(k.withDocket, k.total)} sub={`${k.total - k.withDocket} missing`} onClick={() => pick('docket', 'no')} active={f.docket === 'no'} />
+            <Kpi icon="🛎️" label="Bookings (30 days)" value={k.bookings30} onClick={() => pick('activity', 'recent')} active={f.activity === 'recent'} />
+            <Kpi icon="🆘" label="Open SOS" value={k.openSos} tone={k.openSos ? 'bad' : 'muted'} onClick={() => pick('sos', 'open')} active={f.sos === 'open'} />
+            <Kpi icon="☎️" label="No emergency contact" value={k.noContacts} tone={k.noContacts ? 'warn' : 'muted'} onClick={() => pick('contacts', 'no')} active={f.contacts === 'no'} />
+            <Kpi icon="📈" label="On track" value={residents.length ? filtered.filter(r => r.paymentStatus === 'on_track').length : 0} tone="info" onClick={() => pick('payStatus', 'on_track')} active={f.payStatus === 'on_track'} />
+            <Kpi icon="🔔" label="Due ≤ 7 days" value={k.dueSoon} tone="warn" />
+          </KpiGrid>
+          <div className="mt-4" />
           <FilterPanel
             active={countActive(f, RESIDENT_FILTERS)}
             onReset={() => setF(RESIDENT_FILTERS)}
@@ -442,8 +467,7 @@ export default function UsersList() {
             <SelectFilter label="Onboarded via" value={f.source} onChange={v => set('source', v)} options={[{ value: 'admin', label: 'Admin portal' }, { value: 'app', label: 'App sign-up' }]} />
             <SelectFilter label="Admin notes" value={f.notes} onChange={v => set('notes', v)} options={[{ value: 'yes', label: 'Has notes' }, { value: 'no', label: 'No notes' }]} />
           </FilterPanel>
-
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+<div className="mb-3 flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">Quick:</span>
             <Chips
               value={f.payStatus}
@@ -452,54 +476,7 @@ export default function UsersList() {
             />
           </div>
 
-          <KpiGrid>
-            <Kpi icon="👥" label="Residents" value={k.total} sub={`${k.active} active · ${k.blocked} blocked`} />
-            <Kpi icon="🆕" label="Joined this month" value={k.newMonth} />
-            <Kpi icon="🏠" label="Properties" value={k.properties} sub={`${k.withProperty} residents own one`} onClick={() => pick('hasProperty', 'yes')} active={f.hasProperty === 'yes'} />
-            <Kpi icon="📄" label="Agreement value" value={moneyCompact(k.agreement)} sub={k.avgTicket ? `avg ${moneyCompact(k.avgTicket)} / resident` : ''} />
-            <Kpi icon="💰" label="Collected" value={moneyCompact(k.collected)} tone="good" sub={`${k.collectionPct} of agreement`} />
-            <Kpi icon="⏳" label="Outstanding" value={moneyCompact(k.outstanding)} tone="info" />
-            <Kpi icon="🚨" label="Overdue residents" value={k.overdueRes} tone="bad" sub={k.avgOverdueDays ? `avg ${k.avgOverdueDays} days late` : ''} onClick={() => pick('payStatus', 'overdue')} active={f.payStatus === 'overdue'} />
-            <Kpi icon="💸" label="Overdue amount" value={moneyCompact(k.overdueAmt)} tone="bad" />
-            <Kpi icon="⚠️" label="Late fees accruing" value={moneyCompact(k.lateFees)} tone={k.lateFees ? 'warn' : 'muted'} onClick={() => pick('lateFee', 'yes')} active={f.lateFee === 'yes'} />
-            <Kpi icon="📅" label="Due this month" value={moneyCompact(k.dueMonthAmt)} sub={`${k.dueMonthCount} installment(s)`} onClick={() => pick('dueThisMonth', 'yes')} active={f.dueThisMonth === 'yes'} />
-            <Kpi icon="✅" label="Collected this month" value={moneyCompact(k.paidMonth)} tone="good" />
-            <Kpi icon="⏰" label="Due next 7 days" value={moneyCompact(k.next7Amt)} tone="warn" sub={`${k.next7Count} installment(s)`} onClick={() => pick('payStatus', 'due_soon')} active={f.payStatus === 'due_soon'} />
-            <Kpi icon="🗓️" label="Due next 30 days" value={moneyCompact(k.next30Amt)} sub={`${k.next30Count} installment(s)`} />
-            <Kpi icon="🏁" label="Fully paid" value={k.completed} tone="good" onClick={() => pick('payStatus', 'completed')} active={f.payStatus === 'completed'} />
-            <Kpi icon="➖" label="No payment plan" value={k.noPlan} tone="muted" onClick={() => pick('payStatus', 'no_plan')} active={f.payStatus === 'no_plan'} />
-            <Kpi icon="🔖" label="Down payments" value={moneyCompact(k.downpayments)} />
-            <Kpi icon="📘" label="Docket coverage" value={pct(k.withDocket, k.total)} sub={`${k.total - k.withDocket} missing`} onClick={() => pick('docket', 'no')} active={f.docket === 'no'} />
-            <Kpi icon="🛎️" label="Bookings (30 days)" value={k.bookings30} onClick={() => pick('activity', 'recent')} active={f.activity === 'recent'} />
-            <Kpi icon="🆘" label="Open SOS" value={k.openSos} tone={k.openSos ? 'bad' : 'muted'} onClick={() => pick('sos', 'open')} active={f.sos === 'open'} />
-            <Kpi icon="☎️" label="No emergency contact" value={k.noContacts} tone={k.noContacts ? 'warn' : 'muted'} onClick={() => pick('contacts', 'no')} active={f.contacts === 'no'} />
-            <Kpi icon="📈" label="On track" value={residents.length ? filtered.filter(r => r.paymentStatus === 'on_track').length : 0} tone="info" onClick={() => pick('payStatus', 'on_track')} active={f.payStatus === 'on_track'} />
-            <Kpi icon="🔔" label="Due ≤ 7 days" value={k.dueSoon} tone="warn" />
-          </KpiGrid>
 
-          <div className="grid lg:grid-cols-3 gap-4 mt-4">
-            <Panel title="Collections — last 12 months" subtitle="Payments received from the filtered residents" className="lg:col-span-2">
-              <TrendBars points={charts.collections} metric="amount" format={v => moneyCompact(v)} />
-            </Panel>
-            <Panel title="Payment status" subtitle="Click to filter">
-              <BarList items={charts.status} onPick={label => { const key = Object.keys(PAYMENT_STATUS).find(s => PAYMENT_STATUS[s].label === label); if (key) pick('payStatus', key); }} picked={PAYMENT_STATUS[f.payStatus]?.label} />
-            </Panel>
-            <Panel title="Dues forecast — next 6 months" subtitle="Scheduled, still unpaid" className="lg:col-span-2">
-              <TrendBars points={charts.forecast} metric="amount" format={v => moneyCompact(v)} />
-            </Panel>
-            <Panel title="Overdue ageing" subtitle="Unpaid amount by days late">
-              <BarList items={charts.ageing} valueLabel={(v, i) => `${moneyCompact(v)} · ${i.count}`} color="bg-rose-400" />
-            </Panel>
-            <Panel title="Outstanding by project">
-              <BarList items={charts.projects.map(p => ({ ...p, value: p.amount }))} valueLabel={v => moneyCompact(v)} onPick={v => pick('project', v)} picked={f.project} />
-            </Panel>
-            <Panel title="Payment modes" subtitle="Share of amount collected">
-              <BarList items={charts.methods.map(p => ({ ...p, value: p.amount }))} valueLabel={v => moneyCompact(v)} color="bg-emerald-400" />
-            </Panel>
-            <Panel title="Top outstanding residents">
-              <BarList items={[...filtered].sort((a, b) => b.outstanding - a.outstanding).filter(r => r.outstanding > 0).slice(0, 8).map(r => ({ label: r.name || r.mobile, value: r.outstanding }))} valueLabel={v => moneyCompact(v)} color="bg-sky-400" />
-            </Panel>
-          </div>
 
           <div className="mt-4">
             <PagedTable columns={residentColumns} rows={filtered} onRow={r => navigate(`/users/${r.id}`)} empty="No residents match these filters." />
@@ -507,6 +484,21 @@ export default function UsersList() {
         </>
       ) : (
         <>
+          <KpiGrid>
+            <Kpi icon="🧾" label="Scheduled (filtered)" value={moneyCompact(lk.scheduled)} sub={`${lk.count} installment(s)`} />
+            <Kpi icon="💰" label="Collected" value={moneyCompact(lk.collected)} tone="good" sub={`${lk.paidCount} paid · ${pct(lk.collected, lk.scheduled)}`} onClick={() => setL('status', lf.status === 'paid' ? '' : 'paid')} active={lf.status === 'paid'} />
+            <Kpi icon="⏳" label="Pending" value={moneyCompact(lk.pending)} tone="info" sub={`${lk.pendingCount} unpaid`} />
+            <Kpi icon="🚨" label="Overdue" value={moneyCompact(lk.overdue)} tone="bad" sub={`${lk.overdueCount} inst · ${lk.defaulters} resident(s)`} onClick={() => setL('status', lf.status === 'overdue' ? '' : 'overdue')} active={lf.status === 'overdue'} />
+            <Kpi icon="📌" label="Due today" value={moneyCompact(sum(lk.dueToday, i => i.amount))} tone="warn" sub={`${lk.dueToday.length} installment(s)`} />
+            <Kpi icon="⏰" label="Due next 7 days" value={moneyCompact(sum(lk.next7, i => i.amount))} tone="warn" sub={`${lk.next7.length} installment(s)`} onClick={() => setL('status', lf.status === 'due_soon' ? '' : 'due_soon')} active={lf.status === 'due_soon'} />
+            <Kpi icon="📅" label="Due this month" value={moneyCompact(sum(lk.dueMonth, i => i.amount))} sub={`${lk.dueMonth.length} installment(s)`} onClick={() => setL('due', lf.due.preset === 'this_month' ? D : { ...D, preset: 'this_month' })} active={lf.due.preset === 'this_month'} />
+            <Kpi icon="✅" label="Collected this month" value={moneyCompact(sum(lk.paidMonth, i => i.paidAmount ?? i.amount))} tone="good" sub={`${lk.paidMonth.length} payment(s)`} />
+            <Kpi icon="🟢" label="Collected today" value={moneyCompact(sum(lk.paidToday, i => i.paidAmount ?? i.amount))} tone="good" sub={`${lk.paidToday.length} payment(s)`} />
+            <Kpi icon="🎯" label="On-time payments" value={lk.onTime} sub={lk.avgDelay ? `late ones avg ${lk.avgDelay} days` : ''} />
+            <Kpi icon="⚠️" label="Late fees accruing" value={moneyCompact(lk.lateFees)} tone={lk.lateFees ? 'warn' : 'muted'} />
+            <Kpi icon="👤" label="Defaulters" value={lk.defaulters} tone={lk.defaulters ? 'bad' : 'muted'} />
+          </KpiGrid>
+          <div className="mt-4" />
           <FilterPanel
             active={countActive(lf, LEDGER_FILTERS)}
             onReset={() => setLf(LEDGER_FILTERS)}
@@ -527,20 +519,6 @@ export default function UsersList() {
             <RangeFilter label="Amount ₹" value={lf.amount} onChange={v => setL('amount', v)} />
           </FilterPanel>
 
-          <KpiGrid>
-            <Kpi icon="🧾" label="Scheduled (filtered)" value={moneyCompact(lk.scheduled)} sub={`${lk.count} installment(s)`} />
-            <Kpi icon="💰" label="Collected" value={moneyCompact(lk.collected)} tone="good" sub={`${lk.paidCount} paid · ${pct(lk.collected, lk.scheduled)}`} onClick={() => setL('status', lf.status === 'paid' ? '' : 'paid')} active={lf.status === 'paid'} />
-            <Kpi icon="⏳" label="Pending" value={moneyCompact(lk.pending)} tone="info" sub={`${lk.pendingCount} unpaid`} />
-            <Kpi icon="🚨" label="Overdue" value={moneyCompact(lk.overdue)} tone="bad" sub={`${lk.overdueCount} inst · ${lk.defaulters} resident(s)`} onClick={() => setL('status', lf.status === 'overdue' ? '' : 'overdue')} active={lf.status === 'overdue'} />
-            <Kpi icon="📌" label="Due today" value={moneyCompact(sum(lk.dueToday, i => i.amount))} tone="warn" sub={`${lk.dueToday.length} installment(s)`} />
-            <Kpi icon="⏰" label="Due next 7 days" value={moneyCompact(sum(lk.next7, i => i.amount))} tone="warn" sub={`${lk.next7.length} installment(s)`} onClick={() => setL('status', lf.status === 'due_soon' ? '' : 'due_soon')} active={lf.status === 'due_soon'} />
-            <Kpi icon="📅" label="Due this month" value={moneyCompact(sum(lk.dueMonth, i => i.amount))} sub={`${lk.dueMonth.length} installment(s)`} onClick={() => setL('due', lf.due.preset === 'this_month' ? D : { ...D, preset: 'this_month' })} active={lf.due.preset === 'this_month'} />
-            <Kpi icon="✅" label="Collected this month" value={moneyCompact(sum(lk.paidMonth, i => i.paidAmount ?? i.amount))} tone="good" sub={`${lk.paidMonth.length} payment(s)`} />
-            <Kpi icon="🟢" label="Collected today" value={moneyCompact(sum(lk.paidToday, i => i.paidAmount ?? i.amount))} tone="good" sub={`${lk.paidToday.length} payment(s)`} />
-            <Kpi icon="🎯" label="On-time payments" value={lk.onTime} sub={lk.avgDelay ? `late ones avg ${lk.avgDelay} days` : ''} />
-            <Kpi icon="⚠️" label="Late fees accruing" value={moneyCompact(lk.lateFees)} tone={lk.lateFees ? 'warn' : 'muted'} />
-            <Kpi icon="👤" label="Defaulters" value={lk.defaulters} tone={lk.defaulters ? 'bad' : 'muted'} />
-          </KpiGrid>
 
           <div className="mt-4">
             <PagedTable columns={ledgerColumns} rows={ledgerRows} pageSize={30} initialSort={{ key: 'dueDate', dir: 'asc' }} empty="No installments match these filters." />

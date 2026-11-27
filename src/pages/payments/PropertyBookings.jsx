@@ -218,24 +218,6 @@ export default function PropertyBookings() {
             <Kpi icon="🏗️" label="Avg construction" value={`${k.construction}%`} />
           </KpiGrid>
 
-          <div className="grid lg:grid-cols-3 gap-4 mt-4">
-            <Panel title="Bookings by month (last 12)" className="lg:col-span-2"><TrendBars points={charts.monthly} /></Panel>
-            <Panel title="Payment status" subtitle="Click to filter">
-              <BarList items={charts.status} onPick={l => pick('status', charts.status.find(s => s.label === l)?.key)} picked={PAYMENT_STATUS[f.status]?.label} />
-            </Panel>
-            <Panel title="Deal value by month (last 12)" className="lg:col-span-2"><TrendBars points={charts.monthly} metric="amount" format={v => moneyCompact(v)} /></Panel>
-            <Panel title="By project" subtitle="Click to filter">
-              <BarList items={charts.projects} valueLabel={(v, i) => `${v} · ${moneyCompact(i.amount)}`} onPick={v => pick('project', v)} picked={f.project} />
-            </Panel>
-            <Panel title="By floor" subtitle="Click to filter">
-              <BarList items={charts.floors} onPick={v => pick('floor', v.replace('Floor ', ''))} picked={f.floor ? `Floor ${f.floor}` : ''} color="bg-sky-400" />
-            </Panel>
-            <Panel title="By unit type"><BarList items={charts.types} color="bg-violet-400" /></Panel>
-            <Panel title="Tenure"><BarList items={charts.tenure} color="bg-amber-400" onPick={v => pick('tenure', v)} picked={f.tenure} /></Panel>
-            <Panel title="Bookings by agent" subtitle="Click to filter">
-              <BarList items={charts.agents} valueLabel={(v, i) => `${v} · ${moneyCompact(i.amount)}`} onPick={v => pick('agent', v)} picked={f.agent} empty="No agent bookings linked yet" color="bg-teal-400" />
-            </Panel>
-          </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-5 mb-3">
             <Chips value={view} onChange={setView} options={[{ key: 'bookings', label: '🏘️ Booked units', count: rows.length }, { key: 'agent', label: '🤝 Agent bookings to convert', count: pending.length }]} />

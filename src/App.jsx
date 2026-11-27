@@ -101,6 +101,8 @@ import Redemptions from './pages/rewards/Redemptions';
 import RewardProjects from './pages/rewards/Projects';
 import Referrals from './pages/rewards/Referrals';
 import Notifications from './pages/notifications/Notifications';
+import Communications from './pages/comms/Communications';
+import SupportChat from './pages/support/SupportChat';
 import Dashboard from './pages/dashboard/Dashboard';
 import Media from './pages/media/Media';
 import Settings from './pages/settings/Settings';
@@ -114,7 +116,7 @@ import PaymentsDashboard from './pages/payments/PaymentsDashboard';
 import PropertyBookings from './pages/payments/PropertyBookings';
 
 // Modules with real pages now (excluded from the ComingSoon fallback).
-const BUILT = ['/users', '/agents', '/agents/dashboard', '/agents/inventory', '/agents/leads', '/agents/pipeline', '/agents/visits', '/agents/bookings', '/agents/commission', '/agents/payouts', '/agents/targets', '/agents/leaderboard', '/agents/analytics', '/agents/notify', '/agents/collateral', '/agents/training', '/agents/news', '/agents/support', '/agents/templates', '/agents/bi', '/agents/settings', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/media', '/settings', '/audit', '/ai', '/services/dashboard', '/food/dashboard', '/healthcare/dashboard', '/mobility/dashboard', '/wellness/dashboard', '/temples/dashboard', '/transport/dashboard', '/amenities/dashboard', '/payment-plan/dashboard', '/payment-plan/bookings'];
+const BUILT = ['/users', '/agents', '/agents/dashboard', '/agents/inventory', '/agents/leads', '/agents/pipeline', '/agents/visits', '/agents/bookings', '/agents/commission', '/agents/payouts', '/agents/targets', '/agents/leaderboard', '/agents/analytics', '/agents/notify', '/agents/collateral', '/agents/training', '/agents/news', '/agents/support', '/agents/templates', '/agents/bi', '/agents/settings', '/construction', '/payment-plan', '/sos', '/dockets', '/site', '/services', '/food', '/temples', '/transport', '/amenities', '/healthcare', '/wellness', '/mobility', '/community', '/rewards', '/notifications', '/communications', '/support-chat', '/media', '/settings', '/audit', '/ai', '/services/dashboard', '/food/dashboard', '/healthcare/dashboard', '/mobility/dashboard', '/wellness/dashboard', '/temples/dashboard', '/transport/dashboard', '/amenities/dashboard', '/payment-plan/dashboard', '/payment-plan/bookings'];
 
 function ComingSoon() {
   return (
@@ -312,6 +314,8 @@ export default function App() {
 
             {/* A14 — Notifications & Broadcast */}
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/communications" element={<Communications />} />
+            <Route path="/support-chat" element={<SupportChat />} />
 
             {/* A17 — Media Library */}
             <Route path="/media" element={<Media />} />

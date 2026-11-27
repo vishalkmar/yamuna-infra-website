@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePaged, PageBar, MAX_ROWS } from './Pagination';
 
 // Generic table.
 //   columns: [{ key, header, render?(row), className?, align? }]
@@ -7,6 +8,9 @@ import React from 'react';
 //   actions: optional (row) => ReactNode  rendered in a trailing column
 export default function DataTable({ columns, rows, loading, empty = 'No records', rowKey = 'id', actions }) {
   const keyOf = (row, i) => (typeof rowKey === 'function' ? rowKey(row) : row[rowKey] ?? i);
+  const pg = usePaged(rows || [], MAX_ROWS);
+  const all = rows || [];
+  rows = pg.rows;
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -50,6 +54,7 @@ export default function DataTable({ columns, rows, loading, empty = 'No records'
           </tbody>
         </table>
       </div>
+      {all.length > MAX_ROWS && <PageBar {...pg} />}
     </div>
   );
 }

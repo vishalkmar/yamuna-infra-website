@@ -10,6 +10,9 @@ import PropertyFormModal from './PropertyFormModal';
 import { fmtDate, fmtDateTime } from '../../lib/format';
 import { Kpi, KpiGrid, Panel, BarList, TrendBars, Progress, PagedTable, Pill, Chips, moneyCompact } from '../../components/Dash';
 import { inr, shortDate, exportCsv, daysBetween } from '../../lib/dash';
+import CommsLog from '../comms/CommsLog';
+import ResidentActions, { ResidentAudit } from './ResidentActions';
+import { AppPayments } from '../comms/Communications';
 
 function Card({ title, children, action }) {
   return (
@@ -53,6 +56,20 @@ export default function UserDetail() {
   const [tab, setTab] = useState(searchParams.get('tab') || 'overview');
   const [instFilter, setInstFilter] = useState('all');
   const [actKind, setActKind] = useState('');
+  const [welcomeBusy, setWelcomeBusy] = useState(false);
+  const [commsKey, setCommsKey] = useState(0);
+  const urlTab = searchParams.get('tab');
+  useEffect(() => { if (urlTab) setTab(urlTab); }, [urlTab, id]);
+
+  const sendWelcome = async () => {
+    setWelcomeBusy(true);
+    try {
+      const { data } = await api.post(`/admin/users/${id}/send-welcome`, {}, { timeout: 90000 });
+      if (data.data?.emailStatus === 'sent') toast.success('Account summary emailed with PDF');
+      else toast.error(data.message || 'Saved, but the email could not be sent');
+      setCommsKey(k => k + 1);
+    } catch (e) { toast.error(apiError(e, 'Could not send')); } finally { setWelcomeBusy(false); }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -160,6 +177,10 @@ export default function UserDetail() {
     ['history', `🧾 Receipts (${paidRows.length})`],
     ['documents', `📘 Dockets (${crm?.documents?.length ?? 0})`],
     ['activity', `🛎️ Bookings (${activity.length})`],
+    ['actions', '⚡ Actions'],
+    ['comms', '📨 Emails & vouchers'],
+    ['audit', '🛡️ Who did what'],
+    ['apppay', '💳 App payments'],
     ['timeline', '🕒 Timeline'],
   ];
 
@@ -388,19 +409,6 @@ export default function UserDetail() {
             </Card>
           ))}
 
-          {s && ledger.length > 0 && (
-            <div className="grid lg:grid-cols-3 gap-4">
-              <Panel title="Payments received by month">
-                <TrendBars points={s.monthlyCollections.map(m => ({ label: m.month, amount: m.amount }))} metric="amount" format={v => moneyCompact(v)} height={100} />
-              </Panel>
-              <Panel title="Upcoming dues (next 12 months)">
-                <TrendBars points={s.forecast.map(m => ({ label: m.month, amount: m.amount }))} metric="amount" format={v => moneyCompact(v)} height={100} />
-              </Panel>
-              <Panel title="Payment modes">
-                <BarList items={Object.entries(s.byMethod).map(([label, value]) => ({ label, value }))} valueLabel={v => inr(v)} color="bg-emerald-400" empty="No payments yet" />
-              </Panel>
-            </div>
-          )}
 
           {ledger.length > 0 && (
             <Panel
@@ -487,11 +495,7 @@ export default function UserDetail() {
       )}
 
       {tab === 'activity' && (
-        <div className="grid lg:grid-cols-3 gap-4">
-          <Panel title="By service" subtitle="Click to filter">
-            <BarList items={kinds} onPick={kk => setActKind(actKind === kk ? '' : kk)} picked={actKind} empty="No bookings yet" />
-          </Panel>
-          <Panel title={`Activity & bookings (${shownActivity.length})`} className="lg:col-span-2">
+        <Panel title={`Activity & bookings (${shownActivity.length})`}>
             {shownActivity.length === 0 ? (
               <p className="text-sm text-slate-400">No bookings or orders yet.</p>
             ) : (
@@ -511,8 +515,25 @@ export default function UserDetail() {
               </ul>
             )}
           </Panel>
+      )}
+
+      {tab === 'comms' && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 bg-white rounded-xl border border-slate-200 px-4 py-3">
+            <p className="text-sm text-slate-600">Everything sent to this resident — welcome pack, payment receipts, due reminders, dockets — with the exact PDFs they received.</p>
+            <button onClick={sendWelcome} disabled={welcomeBusy} className="px-3 py-1.5 rounded-lg bg-brand-primary text-white text-sm font-semibold disabled:opacity-50">
+              {welcomeBusy ? 'Sending…' : '✉️ Send account summary again'}
+            </button>
+          </div>
+          <CommsLog key={commsKey} userId={id} compact />
         </div>
       )}
+
+      {tab === 'apppay' && <AppPayments userId={id} />}
+
+      {tab === 'actions' && <ResidentActions user={user} onSent={() => setCommsKey(k => k + 1)} />}
+
+      {tab === 'audit' && <ResidentAudit userId={id} />}
 
       {tab === 'timeline' && crm && (
         <Panel title="Resident timeline" subtitle="Payments, dockets, bookings and rewards — newest first">

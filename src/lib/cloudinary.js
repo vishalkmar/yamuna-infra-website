@@ -84,3 +84,19 @@ export async function uploadFile(file) {
   if (!res.ok) throw new Error(body?.error?.message || 'Upload failed');
   return mapResult(body);
 }
+
+// Upload a video (mp4/mov/webm…) — same signed params, /video/upload endpoint.
+export async function uploadVideo(file) {
+  const { data } = await api.get('/admin/media/sign');
+  const s = data.data;
+  const form = new FormData();
+  form.append('file', file);
+  form.append('api_key', s.apiKey);
+  form.append('timestamp', s.timestamp);
+  form.append('signature', s.signature);
+  if (s.folder) form.append('folder', s.folder);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${s.cloudName}/video/upload`, { method: 'POST', body: form });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body?.error?.message || 'Video upload failed');
+  return mapResult(body);
+}

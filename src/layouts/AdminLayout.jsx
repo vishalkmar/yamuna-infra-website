@@ -6,6 +6,8 @@ import { useToast } from '../components/Toast';
 import api, { apiError } from '../lib/api';
 import FormModal, { Field, inputClass } from '../components/FormModal';
 import SosAlertWatcher from '../components/SosAlertWatcher';
+import ChatAlertWatcher, { useChatUnread } from '../components/ChatAlertWatcher';
+import LiveBell from '../components/LiveBell';
 
 // Sidebar nav — mirrors ADMIN_PORTAL_DOCUMENTATION.pdf. `roles` (optional)
 // restricts visibility; absent = visible to all admin roles.
@@ -48,7 +50,9 @@ export const MODULES = [
   { path: '/amenities/dashboard', match: '/amenities', label: 'Amenities & Clubhouse', icon: '🎯' },
   { path: '/community', label: 'Community & Visitors', icon: '📢' },
   { path: '/rewards', label: 'Rewards & Projects', icon: '🎁' },
-  { path: '/notifications', label: 'Notifications', icon: '🔔' },
+  { path: '/support-chat', label: 'Support Chat', icon: '💬', badge: 'chat' },
+  { path: '/communications', label: 'Communications & Vouchers', icon: '📨' },
+  { path: '/notifications', label: 'Broadcast Notifications', icon: '🔔' },
   { path: '/ai', label: 'AI Concierge (RAG)', icon: '🤖' },
   { path: '/media', label: 'Media Library', icon: '🖼️' },
   { path: '/settings', label: 'App Settings', icon: '⚙️' },
@@ -56,6 +60,7 @@ export const MODULES = [
 ];
 
 function Sidebar({ role }) {
+  const chatUnread = useChatUnread();
   const items = MODULES.filter(m => !m.roles || m.roles.includes(role));
   const { pathname } = useLocation();
   const currentModule = moduleOf(pathname);
@@ -80,7 +85,8 @@ function Sidebar({ role }) {
             }
           >
             <span>{m.icon}</span>
-            <span>{m.label}</span>
+            <span className="flex-1">{m.label}</span>
+            {m.badge === 'chat' && chatUnread > 0 && <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-500 text-white text-[11px] font-bold grid place-items-center">{chatUnread}</span>}
           </NavLink>
         ))}
       </nav>
@@ -133,6 +139,8 @@ function Topbar({ admin, onLogout }) {
   return (
     <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-20">
       <h1 className="font-bold text-slate-700">Admin Portal</h1>
+      <div className="flex items-center gap-2">
+      <LiveBell />
       <div className="relative">
         <button onClick={() => setMenu(v => !v)} className="flex items-center gap-2 text-sm">
           <span className="text-slate-600 hidden sm:block">{admin?.name}</span>
@@ -152,6 +160,7 @@ function Topbar({ admin, onLogout }) {
             </div>
           </>
         )}
+      </div>
       </div>
       <ChangePasswordModal open={pwd} onClose={() => setPwd(false)} />
     </header>
@@ -181,6 +190,7 @@ export default function AdminLayout() {
       </div>
       {/* Reception SOS watcher — shows a blinking danger popup on any page. */}
       <SosAlertWatcher />
+      <ChatAlertWatcher />
     </div>
   );
 }

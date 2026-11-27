@@ -4,6 +4,7 @@ import { useToast } from '../../components/Toast';
 import PageHeader from '../../components/PageHeader';
 import FormModal, { Field, inputClass } from '../../components/FormModal';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import SosLog from './SosLog';
 
 export default function SosEmergency() {
   const toast = useToast();
@@ -51,7 +52,9 @@ export default function SosEmergency() {
 
   return (
     <div>
-      <PageHeader title="SOS & Emergency" subtitle="Dispatch number + emergency services shown to every resident" />
+      <PageHeader title="SOS & Emergency" subtitle="Every SOS raised by residents and how the office responded — plus the dispatch number and emergency services" />
+      <SosLog />
+      <h2 className="font-bold text-slate-800 text-lg mb-3">Setup</h2>
 
       {/* SOS dispatch number */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 mb-5 max-w-xl">

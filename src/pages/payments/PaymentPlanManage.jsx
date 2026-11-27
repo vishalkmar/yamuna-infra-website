@@ -1,3 +1,4 @@
+import { usePaged, PageBar } from '../../components/Pagination';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api, { apiError } from '../../lib/api';
@@ -80,6 +81,7 @@ export default function PaymentPlanManage() {
     } catch (e) { toast.error(apiError(e)); } finally { setBusy(false); }
   }
 
+  const paidPg = usePaged((data?.installments || []).filter(i => i.isPaid).sort((a, b) => ((a.paidAt || '') < (b.paidAt || '') ? 1 : -1)));
   if (loading) return <div className="text-slate-400">Loading…</div>;
   if (!data) return <div className="text-slate-400">Not found.</div>;
 
@@ -200,7 +202,7 @@ export default function PaymentPlanManage() {
                   <tr><th className="text-left px-4 py-2">Installment</th><th className="text-left px-4 py-2">Paid on</th><th className="text-left px-4 py-2">Method</th><th className="text-left px-4 py-2">Source</th><th className="text-left px-4 py-2">Txn</th><th className="text-right px-4 py-2">Amount</th></tr>
                 </thead>
                 <tbody>
-                  {paid.sort((a, b) => (a.paidAt || '') < (b.paidAt || '') ? 1 : -1).map(i => (
+                  {paidPg.rows.map(i => (
                     <tr key={i.id} className="border-t border-slate-100">
                       <td className="px-4 py-2 text-slate-800">{i.label}</td>
                       <td className="px-4 py-2 text-slate-600">{fmtDate(i.paidAt)}</td>
@@ -212,6 +214,7 @@ export default function PaymentPlanManage() {
                   ))}
                 </tbody>
               </table>
+              <PageBar {...paidPg} />
             </div>
           )}
         </>
@@ -242,7 +245,9 @@ function Row({ label, value }) {
   );
 }
 
-function InstallmentTable({ rows, onPay, onEdit, onConfirm }) {
+function InstallmentTable({ rows: all, onPay, onEdit, onConfirm }) {
+  const pg = usePaged(all);
+  const rows = pg.rows;
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <table className="w-full text-sm">
@@ -279,6 +284,7 @@ function InstallmentTable({ rows, onPay, onEdit, onConfirm }) {
           ))}
         </tbody>
       </table>
+      <PageBar {...pg} />
     </div>
   );
 }

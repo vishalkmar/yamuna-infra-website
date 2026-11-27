@@ -249,39 +249,6 @@ export default function PaymentsDashboard() {
             <Kpi icon="❌" label="Failed / abandoned" value={ok.failed + ok.cancelled + ok.pending} tone={ok.failed ? 'bad' : 'muted'} sub="follow up with these residents" onClick={() => setView('online')} />
           </KpiGrid>
 
-          <div className="grid lg:grid-cols-3 gap-4 mt-4">
-            <Panel title="Money received — last 30 days" className="lg:col-span-2"><TrendBars points={charts.daily} metric="amount" format={v => moneyCompact(v)} /></Panel>
-            <Panel title="Installment status" subtitle="Click to filter">
-              <BarList items={charts.status} onPick={l => pick('status', charts.status.find(s => s.label === l)?.key)} picked={PAYMENT_STATUS[f.status]?.label} />
-            </Panel>
-            <Panel title="Received by month (last 12)" className="lg:col-span-2"><TrendBars points={charts.monthly} metric="amount" format={v => moneyCompact(v)} /></Panel>
-            <Panel title="Overdue ageing" subtitle="Click to filter">
-              <BarList items={charts.ageing} valueLabel={(v, i) => `${moneyCompact(v)} · ${i.count}`} color="bg-rose-400" onPick={l => pick('overdueAge', l.replace(' days', ''))} picked={f.overdueAge ? `${f.overdueAge} days` : ''} />
-            </Panel>
-            <Panel title="Scheduled by due month (last 12)" subtitle="Compare with received above" className="lg:col-span-2"><TrendBars points={charts.scheduled} metric="amount" format={v => moneyCompact(v)} /></Panel>
-            <Panel title="Payment modes" subtitle="Click to filter">
-              <BarList items={charts.methods} valueLabel={v => moneyCompact(v)} color="bg-emerald-400" onPick={v => pick('method', v)} picked={f.method} empty="No payments yet" />
-            </Panel>
-            <Panel title="Upcoming inflow — next 12 months" className="lg:col-span-2"><TrendBars points={charts.forecast} metric="amount" format={v => moneyCompact(v)} /></Panel>
-            <Panel title="Where money came from">
-              <BarList items={charts.sources} valueLabel={v => moneyCompact(v)} color="bg-sky-400" empty="No payments yet" />
-            </Panel>
-            <Panel title="Collected by project" subtitle="Click to filter">
-              <BarList items={charts.projectsPaid} valueLabel={v => moneyCompact(v)} onPick={v => pick('project', v)} picked={f.project} empty="No payments yet" />
-            </Panel>
-            <Panel title="Pending by project">
-              <BarList items={charts.projectsDue} valueLabel={v => moneyCompact(v)} color="bg-sky-400" onPick={v => pick('project', v)} picked={f.project} />
-            </Panel>
-            <Panel title="Payments by weekday">
-              <BarList items={charts.weekdays} color="bg-violet-400" max={7} onPick={v => pick('weekday', v)} picked={f.weekday} />
-            </Panel>
-            <Panel title="Top payers">
-              <BarList items={charts.payers} valueLabel={v => moneyCompact(v)} color="bg-emerald-400" empty="No payments yet" />
-            </Panel>
-            <Panel title="Top defaulters">
-              <BarList items={charts.defaulters} valueLabel={v => moneyCompact(v)} color="bg-rose-400" empty="Nobody overdue 🎉" />
-            </Panel>
-          </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-5 mb-3">
             <Chips value={view} onChange={setView} options={[

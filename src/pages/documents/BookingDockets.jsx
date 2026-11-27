@@ -239,16 +239,6 @@ export default function BookingDockets() {
         <Kpi icon="🕘" label="Latest upload" value={k.latest ? shortDate(k.latest.createdAt) : '—'} sub={k.latest ? `${k.latest.residentName || ''} · ${k.latest.title}` : ''} />
       </KpiGrid>
 
-      <div className="grid lg:grid-cols-3 gap-4 mt-4">
-        <Panel title="Uploads — last 30 days" className="lg:col-span-2"><TrendBars points={charts.daily} /></Panel>
-        <Panel title="Coverage by project" subtitle="% of residents with a docket">
-          <BarList items={charts.byProject} valueLabel={(v, i) => `${v}% · ${i.covered}/${i.total}`} onPick={p => pick('project', p)} picked={f.project} color="bg-emerald-400" />
-        </Panel>
-        <Panel title="Uploads — last 12 months" className="lg:col-span-2"><TrendBars points={charts.monthly} /></Panel>
-        <Panel title="Storage health">
-          <BarList items={charts.storage} empty="No documents yet" />
-        </Panel>
-      </div>
 
       <div className="flex flex-wrap items-center gap-2 mt-5 mb-3">
         <Chips value={view} onChange={setView} options={[{ key: 'residents', label: '👥 Residents & coverage', count: resRows.length }, { key: 'documents', label: '📄 All documents', count: docRows.length }]} />

@@ -218,7 +218,8 @@ export function FilterPanel({ active, onReset, children, extra }) {
 }
 
 // Client-side paged table. columns: [{ key, header, render?(row), align?, sort?(row) }]
-export function PagedTable({ columns, rows, pageSize = 25, empty = 'Nothing matches these filters', rowKey = 'id', onRow, initialSort }) {
+export function PagedTable({ columns, rows, pageSize: wanted = 50, empty = 'Nothing matches these filters', rowKey = 'id', onRow, initialSort }) {
+  const pageSize = Math.min(wanted || 50, 50);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState(initialSort || null); // { key, dir }
   const sorted = useMemo(() => {

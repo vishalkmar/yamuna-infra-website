@@ -210,56 +210,6 @@ export default function ModuleDashboard({ module, icon }) {
             <Kpi icon="⏱️" label="Avg booked ahead" value={k.lead === '—' ? '—' : `${k.lead} d`} sub="days between booking & service" />
           </KpiGrid>
 
-          <div className="grid lg:grid-cols-3 gap-4 mt-4">
-            <Panel
-              title={trendBy === 'day' ? 'Bookings — last 30 days' : 'Bookings — last 12 months'}
-              className="lg:col-span-2"
-              action={<Chips value={trendBy} onChange={setTrendBy} options={[{ key: 'day', label: 'Daily' }, { key: 'month', label: 'Monthly' }]} />}
-            >
-              <TrendBars points={charts.trend} />
-              {hasAmount && <div className="mt-3"><TrendBars points={charts.trend} metric="amount" format={v => moneyCompact(v)} height={70} /></div>}
-            </Panel>
-            <Panel title="By status" subtitle="Click to filter">
-              <BarList items={charts.status.map(s => ({ ...s, label: LABEL(s.label) }))} onPick={l => pick('status', l.replace(/ /g, '_'))} picked={LABEL(f.status)} />
-            </Panel>
-            <Panel title="Top booked" subtitle="Click to filter">
-              <BarList items={charts.items} valueLabel={(v, i) => (hasAmount && i.amount ? `${v} · ${moneyCompact(i.amount)}` : v)} onPick={v => pick('item', v)} picked={f.item} />
-            </Panel>
-            <Panel title="By category" subtitle="Click to filter">
-              <BarList items={charts.categories} valueLabel={(v, i) => (hasAmount && i.amount ? `${v} · ${moneyCompact(i.amount)}` : v)} onPick={v => pick('category', v)} picked={f.category} color="bg-sky-400" />
-            </Panel>
-            <Panel title="Day of week">
-              <BarList items={charts.weekdays} onPick={v => pick('weekday', v)} picked={f.weekday} color="bg-violet-400" max={7} />
-            </Panel>
-            {hasKinds && (
-              <Panel title="By type"><BarList items={charts.kinds} color="bg-amber-400" /></Panel>
-            )}
-            {charts.dims.map((d, i) => (
-              <Panel key={d.field} title={`By ${d.label}`} subtitle="Click to filter">
-                <BarList items={d.items.map(x => ({ ...x, label: LABEL(x.label) }))} onPick={v => set(i === 0 ? 'dim0' : 'dim1', (i === 0 ? f.dim0 : f.dim1) === v ? '' : v)} picked={LABEL(i === 0 ? f.dim0 : f.dim1)} color="bg-teal-400" />
-              </Panel>
-            ))}
-            <Panel title="Top residents">
-              <BarList items={charts.residents} valueLabel={(v, i) => (hasAmount && i.amount ? `${v} · ${moneyCompact(i.amount)}` : v)} color="bg-emerald-400" />
-            </Panel>
-            {Object.entries(data?.lists || {}).map(([title, items]) => (
-              <Panel key={title} title={title}>
-                {items.length === 0 ? <p className="text-sm text-slate-400">Nothing yet</p> : (
-                  /^\d{4}-\d{2}-\d{2}/.test(String(items[0].value)) || isNaN(Number(items[0].value)) ? (
-                    <ul className="divide-y divide-slate-100 text-sm">
-                      {items.map((x, i) => (
-                        <li key={i} className="py-1.5 flex justify-between gap-2">
-                          <span className="text-slate-700 truncate">{x.label}</span>
-                          <span className="text-slate-500 whitespace-nowrap capitalize">{/^\d{4}-\d{2}-\d{2}/.test(String(x.value)) ? shortDate(x.value) : LABEL(x.value)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <BarList items={items.map(x => ({ label: x.label, value: Number(x.value) }))} color="bg-slate-400" valueLabel={(v, x) => (title.includes('price') || title.includes('Spiritual') ? inr(v) : v)} />
-                )}
-              </Panel>
-            ))}
-          </div>
-
           <div className="mt-5">
             <FilterPanel active={activeCount} onReset={() => setF(BASE)} extra={<button onClick={exportRows} className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm hover:bg-slate-50">⬇ Export CSV</button>}>
               <FilterField label="Search" className="col-span-2">
